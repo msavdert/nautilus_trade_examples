@@ -37,3 +37,11 @@ Thumbs.db
 *.bak
 *.backup
 *.old
+
+# Test ve geçici projeler (container içinde oluşturulan)
+test-project/
+my-trading-project/
+my-project/
+*-project/
+demo-*/
+example-*/
