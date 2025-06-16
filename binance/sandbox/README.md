@@ -42,7 +42,10 @@ cd my-trading-project
 # 3. NAUTILUS TRADER EKLE
 uv add nautilus_trader
 
-# 4. KURULUMU TEST ET
+# 4. (İSTEĞE BAĞLI) Redis direct access için
+uv add redis
+
+# 5. KURULUMU TEST ET
 uv run python -c "import nautilus_trader; print('Nautilus Trader kurulumu başarılı!')"
 ```
 
@@ -107,6 +110,18 @@ docker-compose ps
 docker-compose up -d  # Eğer çalışmıyorsa
 ```
 
+### ❌ Hata: `No module named 'redis'`
+```bash
+# Test script çalıştırırken
+python test_setup.py
+# ❌ ModuleNotFoundError: No module named 'redis'
+```
+
+**Çözüm:** Redis Python client'ını ekleyin
+```bash
+uv add redis
+```
+
 ### ✅ Doğru Adım Sırası
 1. `docker-compose up -d` - Container'ları başlat
 2. `docker exec -it nautilus-trader bash` - Container'a bağlan  
@@ -128,3 +143,20 @@ cd /tmp && uv init test-project && cd test-project
 # Ana workspace'de gerçek projelerinizi oluşturun
 cd /workspace && uv init my-trading-bot && cd my-trading-bot
 ```
+
+**Paket Açıklamaları:**
+- `nautilus_trader`: Ana trading framework (zorunlu)
+- `redis`: Redis veritabanına direct erişim için (isteğe bağlı)
+
+### Redis Ne Zaman Gerekli?
+
+✅ **Redis paketi GEREKLİ:**
+- Custom caching logic yazıyorsanız
+- Redis'ten direkt veri okuyacaksanız  
+- Test script'lerini çalıştıracaksanız
+
+❌ **Redis paketi GEREKLİ DEĞİL:**
+- Sadece Nautilus Trader kullanıyorsanız
+- Basic trading yapıyorsanız
+
+> **Not:** Redis **server** zaten Docker'da çalışıyor. `uv add redis` sadece Python'dan Redis'e bağlanmak için gerekli.

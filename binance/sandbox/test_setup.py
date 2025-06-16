@@ -9,7 +9,14 @@ def test_nautilus_import():
     try:
         import nautilus_trader
         print(f"✅ Nautilus Trader başarıyla import edildi!")
-        print(f"📦 Versiyon: {nautilus_trader.__version__}")
+        
+        # Version bilgisini güvenli şekilde al
+        try:
+            from nautilus_trader import __version__
+            print(f"📦 Versiyon: {__version__}")
+        except ImportError:
+            print("📦 Versiyon bilgisi alınamadı (normal)")
+            
         return True
     except ImportError as e:
         print(f"❌ Nautilus Trader import edilemedi: {e}")
