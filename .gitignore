@@ -74,6 +74,21 @@ htmlcov/
 # Docker
 .docker/
 
+# Docker Sandbox - Container workspace dosyaları
+binance/sandbox/nautilus_trader/
+binance/sandbox/trading-project/
+binance/sandbox/logs/
+sandbox/trading-project/
+sandbox/nautilus_trader/
+
+# UV package manager dosyaları (container'dan gelebilir)
+uv.lock
+**/uv.lock
+
+# Docker development dosyaları
+**/Dockerfile.dev
+**/docker-compose.override.yml
+
 # macOS
 .DS_Store
 .AppleDouble
