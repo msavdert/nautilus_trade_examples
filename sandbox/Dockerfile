@@ -10,9 +10,12 @@ RUN apt-get update && apt-get install -y \
     procps \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv for faster package management
+RUN pip install uv
+
 # Python bağımlılıklarını yükle
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY pyproject.toml .
+RUN uv pip install --system .
 
 # Uygulama kodunu kopyala
 COPY . .

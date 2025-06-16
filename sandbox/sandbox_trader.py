@@ -36,7 +36,7 @@ EMA Cross stratejisi, iki farklı periyotluk üssel hareketli ortalama kullanır
 ├── sandbox/
 │   ├── sandbox_trader.py  # Ana trading bot (bu dosya)
 │   ├── .env              # API anahtarları ve ortam değişkenleri
-│   └── requirements.txt  # Python dependencies
+│   └── pyproject.toml    # Python dependencies and project config
 └── README.md             # Kullanım kılavuzu
 
 🚀 KULLANIM:

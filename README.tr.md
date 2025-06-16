@@ -23,7 +23,7 @@ nautilus_trade/
 │   ├── sandbox_trader.py     #    Trading bot uygulaması
 │   ├── .env                  #    Ortam değişkenleri
 │   ├── Dockerfile            #    Container konfigürasyonu
-│   └── requirements.txt      #    Python bağımlılıkları
+│   └── pyproject.toml        #    Python bağımlılıkları ve proje konfigürasyonu
 └── live/                     # 🔴 Canlı trading ortamı
     └── (gelecek uygulama)
 ```

@@ -23,7 +23,7 @@ nautilus_trade/
 │   ├── sandbox_trader.py     #    Trading bot implementation
 │   ├── .env                  #    Environment variables
 │   ├── Dockerfile            #    Container configuration
-│   └── requirements.txt      #    Python dependencies
+│   └── pyproject.toml        #    Python dependencies and project config
 └── live/                     # 🔴 Live trading environment
     └── (future implementation)
 ```
