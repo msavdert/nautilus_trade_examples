@@ -54,3 +54,46 @@ Thumbs.db
 # Git
 .git/
 .gitignore
+
+# Docker files (recursive builds prevention)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Nautilus Trader specific
+nautilus_trader/
+trading-project/
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+
+# Documentation (not needed in container)
+README*.md
+docs/
+*.md
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Package manager cache
+uv.lock
+.uv-cache/
+
+# Testing artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+test-results/
+
+# Backup files
+*.bak
+*.backup
+*.old
