@@ -1,48 +1,124 @@
-version: '3.8'
+# 🌊 Nautilus Trader - Complete Sandbox Trading System
+# ====================================================
+# 
+# Bu docker-compose dosyası, tam bir sandbox trading sistemini tek seferde başlatır:
+# - PostgreSQL: Historical data, orders, trades, positions storage
+# - Redis: Real-time market data caching, order book, recent trades
+# - Nautilus Trader: Professional trading bot with EMA Cross strategy
+#
+# 🚀 KULLANIM:
+#   docker-compose up -d       # Tüm servisleri arka planda başlat
+#   docker-compose logs -f     # Logları izle
+#   docker-compose stop        # Servisleri durdur
+#   docker-compose down        # Servisleri kaldır (data korunur)
+#
+# ⚠️ TESTNET MODU: Gerçek para kullanılmaz, tamamen güvenli!
 
 services:
-  # Redis - Caching ve session management
-  redis:
-    image: redis:7-alpine
-    container_name: nautilus-redis
-    ports:
-      - "6379:6379"
+  # 🤖 Nautilus Trader Sandbox Bot
+  # Ana trading engine - EMA Cross stratejisi ile otomatik trading
+  nautilus-sandbox-trader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nautilus-sandbox-trader
+    env_file:
+      - .env
     volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
+      - .:/app                           # Kaynak kod (sandbox/ içeriği)
+      - ./logs:/app/logs                 # Log dosyaları
+      - ./data:/app/data                 # Data dosyaları
+    networks:
+      - nautilus-network
+    depends_on:
+      nautilus-postgres:
+        condition: service_healthy        # PostgreSQL hazır olana kadar bekle
+      nautilus-redis:
+        condition: service_healthy        # Redis hazır olana kadar bekle
+    restart: unless-stopped
+    # Tüm environment değişkenleri .env dosyasından alınır
+    command: python sandbox_trader.py     # Ana script çalıştır
 
-  # PostgreSQL - Database (isteğe bağlı)
-  postgres:
-    image: postgres:15-alpine
+  # 🗄️ PostgreSQL Database
+  # Historical data, orders, trades, positions storage
+  # Trading geçmişi ve kalıcı veriler burada saklanır
+  nautilus-postgres:
+    image: postgres:15-alpine             # PostgreSQL 15, Alpine Linux (küçük)
     container_name: nautilus-postgres
     environment:
-      POSTGRES_DB: nautilus_trader
-      POSTGRES_USER: nautilus
-      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: ${POSTGRES_DATABASE}               # .env'den database adı (Nautilus standard)
+      POSTGRES_USER: ${POSTGRES_USERNAME}             # .env'den kullanıcı adı (Nautilus standard)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}         # .env'den şifre (Nautilus standard)
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data        # Kalıcı data storage
+      - ./data/postgres_init:/docker-entrypoint-initdb.d  # Init scripts
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - "${POSTGRES_EXPOSED_PORT}:5432"                       # .env'den PostgreSQL portunu host'a aç
+    networks:
+      - nautilus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME}"]  # .env'den kullanıcı adı (Nautilus standard)
+      interval: 30s                       # 30 saniyede bir kontrol
+      timeout: 10s                        # 10 saniye timeout
+      retries: 3                          # 3 kez dene
+    # Production optimizations (opsiyonel)
+    command: >
+      postgres
+        -c shared_preload_libraries=pg_stat_statements
+        -c max_connections=200
+        -c shared_buffers=256MB
+        -c effective_cache_size=1GB
+        -c maintenance_work_mem=64MB
+        -c checkpoint_completion_target=0.9
+        -c wal_buffers=16MB
+        -c default_statistics_target=100
 
-  # Nautilus Trader Sandbox
-  nautilus-sandbox-trader:
-    build: .
-    container_name: nautilus-sandbox-trader
-    depends_on:
-      - redis
-      - postgres
+  # 🚀 Redis Cache
+  # Real-time market data, order book, recent trades caching
+  # Hızlı erişim gereken veriler burada tutulur
+  nautilus-redis:
+    image: redis:7-alpine                 # Redis 7, Alpine Linux (küçük)
+    container_name: nautilus-redis
+    sysctls:
+      - net.core.somaxconn=1024           # Connection queue size
+    command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - ./logs:/app/logs
-      - ./data:/app/data
-      - ./.env:/app/.env
-    environment:
-      - REDIS_HOST=redis
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DB=nautilus_trader
-      - POSTGRES_USER=nautilus  
-      - POSTGRES_PASSWORD=password123
-    command: python sandbox_trader.py
+      - redis_data:/data                  # Kalıcı Redis data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro  # Redis config dosyası
+    ports:
+      - "${REDIS_EXPOSED_PORT}:6379"                       # .env'den Redis portunu host'a aç
+    networks:
+      - nautilus-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]  # Redis sağlık kontrolü
+      interval: 30s                       # 30 saniyede bir kontrol
+      timeout: 10s                        # 10 saniye timeout
+      retries: 3                          # 3 kez dene
 
+# 💾 Kalıcı Data Volume'ları
+# Bu volume'lar, container'lar silinse bile verilerinizi korur
 volumes:
-  redis_data:
   postgres_data:
+    driver: local                         # Yerel disk'te sakla
+    # Production'da external volume kullanabilirsiniz:
+    # external: true
+    # name: nautilus_postgres_data
+    
+  redis_data:
+    driver: local                         # Yerel disk'te sakla
+    # Production'da external volume kullanabilirsiniz:
+    # external: true  
+    # name: nautilus_redis_data
+
+# 🌐 Network Configuration
+# Tüm servisler aynı network'te, birbirleriyle konuşabilir
+networks:
+  nautilus-network:
+    driver: bridge                        # Bridge network driver
+    # Production'da custom network ayarları:
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/16

@@ -1,124 +1,169 @@
-# Nautilus Trader - Algoritmik Trading Platform
+# 🌊 Nautilus Trader - Professional Trading Framework
 
-Bu proje, Nautilus Trader kullanarak algoritmik trading sistemleri geliştirmek için hazırlanmış kapsamlı bir framework'tür.
+[![License](https://img.shields.io/badge/license-LGPL--3.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](https://docs.docker.com/compose/)
 
-## 📁 Proje Yapısı
+**Professional algorithmic trading framework with multiple environment support.**
 
-```
-nautilus_trade/
-├── sandbox/          # Testnet/Sandbox trading ortamı
-│   ├── sandbox_trader.py
-│   ├── test_setup.py
-│   ├── setup_env.py
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   ├── requirements.txt
-│   ├── .env
-│   ├── README.md
-│   └── SANDBOX.md    # Detaylı sandbox dokümantasyonu
-├── live/            # Production/Live trading ortamı (geliştirme aşamasında)
-└── .gitignore       # Git güvenlik ayarları
-```
-
-## 🎯 Modüller
-
-### 🧪 Sandbox Mode
-**Dizin**: `sandbox/`  
-**Amaç**: Risk almadan testnet ortamında algoritmik trading stratejilerini test etme
-
-**Özellikler:**
-- ✅ Binance Testnet entegrasyonu
-- ✅ EMA Cross stratejisi
-- ✅ Risk yönetimi
-- ✅ Docker desteği
-- ✅ Comprehensive logging
-- ✅ InstrumentId format düzeltmeleri
-
-**Başlangıç:**
-```bash
-cd sandbox/
-python setup_env.py  # API anahtarlarını ayarla
-python test_setup.py  # Kurulumu test et
-python sandbox_trader.py  # Sandbox trader'ı başlat
-```
-
-### 🚀 Live Mode
-**Dizin**: `live/`  
-**Amaç**: Production ortamında gerçek para ile trading (geliştirme aşamasında)
-
-**Planlanan Özellikler:**
-- 🔄 Gerçek broker entegrasyonları
-- 🔄 Gelişmiş risk yönetimi
-- 🔄 Multi-strategy support
-- 🔄 Portfolio management
-- 🔄 Performance analytics
-- 🔄 Alert sistemi
-
-## 🚀 Hızlı Başlangıç
-
-### 1. Sandbox Mode ile Başlayın
-```bash
-# Sandbox klasörüne geçin
-cd sandbox/
-
-# Bağımlılıkları yükleyin
-pip install -r requirements.txt
-
-# API anahtarlarını ayarlayın
-python setup_env.py
-
-# Kurulumu test edin
-python test_setup.py
-
-# Trading bot'u başlatın
-python sandbox_trader.py
-```
-
-### 2. Docker ile Çalıştırma
-```bash
-cd sandbox/
-docker-compose up --build
-```
-
-## 📚 Dokümantasyon
-
-- **[sandbox/SANDBOX.md](sandbox/SANDBOX.md)** - Sandbox mode için detaylı rehber
-- **[sandbox/README.md](sandbox/README.md)** - Sandbox hızlı başlangıç
-- **Nautilus Trader Docs**: https://nautilustrader.io/docs/
-
-## 🔧 Sistem Gereksinimleri
-
-- **Python**: 3.11+
-- **Nautilus Trader**: 1.198.0+
-- **Docker**: 20.10+ (isteğe bağlı)
-- **Redis**: 7.0+ (caching için)
-- **PostgreSQL**: 15+ (veritabanı için, isteğe bağlı)
-
-## ⚠️ Güvenlik Notları
-
-- **API Anahtarları**: Asla kodda saklamayın, `.env` dosyası kullanın
-- **Testnet**: İlk olarak sandbox mode'da test edin
-- **Risk Yönetimi**: Production'da mutlaka risk limitleri ayarlayın
-- **Git Güvenliği**: `.gitignore` dosyası hassas bilgileri korur
-
-## 🤝 Katkıda Bulunma
-
-1. Fork edin
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit edin (`git commit -m 'Add amazing feature'`)
-4. Push edin (`git push origin feature/amazing-feature`)
-5. Pull Request açın
-
-## 📄 Lisans
-
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için [LICENSE](LICENSE) dosyasına bakın.
-
-## 📞 Destek
-
-- **Issues**: GitHub Issues kullanın
-- **Dokümantasyon**: [SANDBOX.md](SANDBOX.md) dosyasını kontrol edin
-- **Community**: Nautilus Trader Discord topluluğuna katılın
+> 🇹🇷 **Türkçe dokümantasyon için**: [README.tr.md](README.tr.md)
 
 ---
 
-**İyi tradeler! 🚀📈**
+## 📁 Project Structure
+
+```
+nautilus_trade/
+├── README.md                   # This overview (English)
+├── README.tr.md               # Turkish overview
+├── sandbox/                   # 🧪 Safe testing environment
+│   ├── README.md             #    Complete sandbox documentation (English)
+│   ├── README.tr.md          #    Complete sandbox documentation (Turkish)
+│   ├── docker-compose.yml    #    Sandbox deployment
+│   ├── sandbox_trader.py     #    Trading bot implementation
+│   ├── .env                  #    Environment variables
+│   ├── Dockerfile            #    Container configuration
+│   └── requirements.txt      #    Python dependencies
+└── live/                     # 🔴 Live trading environment
+    └── (future implementation)
+```
+
+---
+
+## 🧪 Sandbox Environment
+
+The **sandbox** environment provides a completely safe testing environment using Binance Testnet:
+
+- **Safe Testing**: Uses virtual money, no real funds at risk
+- **Real Market Data**: Live data from Binance Testnet
+- **Professional Architecture**: PostgreSQL + Redis + Nautilus Trader
+- **EMA Cross Strategy**: Proven algorithmic trading strategy
+- **Docker Containerized**: One-command deployment
+- **Comprehensive Documentation**: Detailed setup and usage guide
+
+**👉 Get started with sandbox trading:**
+
+```bash
+cd sandbox/
+# Follow the detailed README.md in sandbox directory
+```
+
+---
+
+## 🔴 Live Environment
+
+The **live** environment is designed for real trading with actual funds:
+
+⚠️ **WARNING: Live trading involves real money and substantial risk!**
+
+- **Real Trading**: Uses live exchange APIs with real funds
+- **Production Architecture**: Scalable, monitored, backed up
+- **Advanced Risk Management**: Enhanced safety controls
+- **Regulatory Compliance**: Meets trading regulations
+- **Professional Monitoring**: Real-time alerts and dashboards
+
+**🚧 Status: Under Development**
+
+The live environment is currently under development. For now, please use the sandbox environment for testing and development.
+
+---
+
+## 🚀 Quick Start
+
+### For Sandbox Testing
+
+```bash
+# 1. Navigate to sandbox
+cd sandbox/
+
+# 2. Follow the complete setup guide
+cat README.md
+
+# 3. Quick start (requires .env setup)
+docker-compose up -d
+```
+
+### For Development
+
+```bash
+# 1. Clone repository
+git clone <repository-url>
+cd nautilus_trade
+
+# 2. Choose your environment
+cd sandbox/     # For safe testing
+# cd live/      # For real trading (future)
+
+# 3. Follow environment-specific documentation
+```
+
+---
+
+## 🛠️ Development Philosophy
+
+This project follows a **multi-environment approach**:
+
+1. **Sandbox First**: Always test in sandbox before live trading
+2. **Manual Control**: No automatic scripts - you control everything
+3. **Transparent Configuration**: All settings visible and configurable
+4. **Professional Architecture**: Production-ready from day one
+5. **Safety First**: Multiple layers of protection and validation
+
+---
+
+## 📚 Documentation
+
+### Complete Guides
+
+- **📖 Sandbox Guide**: `sandbox/README.md` - Complete sandbox documentation
+- **🔧 API Reference**: [Nautilus Trader Docs](https://docs.nautilustrader.io/)
+- **📊 Strategy Development**: Examples and tutorials in sandbox
+- **🔒 Security Guide**: Best practices for safe trading
+
+### Quick References
+
+- **Docker Commands**: `docker-compose up/down/logs`
+- **Environment Setup**: `.env` file configuration
+- **Log Monitoring**: Real-time system monitoring
+- **Troubleshooting**: Common issues and solutions
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions to both sandbox and live environments:
+
+1. **Start with Sandbox**: Test your changes in sandbox first
+2. **Follow Architecture**: Maintain separation between environments
+3. **Add Documentation**: Update relevant README files
+4. **Test Thoroughly**: Ensure changes work in Docker containers
+5. **Security Review**: Consider security implications
+
+---
+
+## ⚠️ Important Notes
+
+- **Always Start with Sandbox**: Never begin with live trading
+- **Manual Operation**: This system requires manual setup and monitoring
+- **Risk Management**: You are responsible for all trading decisions
+- **No Automation**: No automatic scripts - manual control only
+- **Educational Purpose**: Primarily for learning algorithmic trading
+
+---
+
+## 📄 License
+
+This project is licensed under the LGPL-3.0 License.
+
+---
+
+## 🚀 Get Started
+
+**Ready to start algorithmic trading?**
+
+```bash
+cd sandbox/
+cat README.md  # Read the complete guide
+```
+
+**Happy Trading!** 📈🌊

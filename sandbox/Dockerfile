@@ -7,6 +7,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Python bağımlılıklarını yükle
@@ -19,5 +20,12 @@ COPY . .
 # Log dizini oluştur
 RUN mkdir -p /app/logs
 
-# Uygulamayı çalıştır
+# Entrypoint script'ini kopyala ve çalıştırılabilir yap
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Entrypoint script'ini kullan
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Varsayılan komut
 CMD ["python", "sandbox_trader.py"]
