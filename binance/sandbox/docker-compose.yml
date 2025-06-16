@@ -1,0 +1,49 @@
+version: '3.5'
+
+services:
+  # 🚀 Redis Cache
+  # Real-time market data, order book, recent trades caching
+  redis:
+    container_name: nautilus-redis
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - nautilus-network
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 60 1 --loglevel warning
+
+  # 🤖 Nautilus Trader
+  # Ana trading engine - minimal setup
+  nautilus-trader:
+    container_name: nautilus-trader
+    build:
+      context: .
+      dockerfile: nautilus_trader.dockerfile
+    volumes:
+      - .:/workspace
+      - ./logs:/workspace/logs
+    networks:
+      - nautilus-network
+    depends_on:
+      - redis
+    restart: unless-stopped
+    environment:
+      - PYTHONUNBUFFERED=1
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    # Interactive mode için shell açık tut
+    stdin_open: true
+    tty: true
+
+# 🌐 Network Configuration
+networks:
+  nautilus-network:
+    driver: bridge
+
+# 💾 Kalıcı Data Volume'ları
+volumes:
+  redis_data:
+    driver: local
