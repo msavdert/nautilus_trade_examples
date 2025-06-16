@@ -1,0 +1,164 @@
+# Nautilus Trader - .gitignore
+
+# API Anahtarları ve Hassas Bilgiler
+.env
+.env.local
+.env.*.local
+*.key
+*.secret
+
+# Nautilus Trader Log Dosyaları
+logs/
+*.log
+log/
+log.txt
+nautilus_trader.log
+
+# Nautilus Trader Cache ve Data
+data/
+cache/
+.nautilus/
+*.db
+*.sqlite
+*.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+myenv/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+.docker/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Backup files
+*.bak
+*.backup
+*.old
+*.orig
+
+# Trading specific
+*.csv.backup
+historical_data/
+backtest_results/
+*.pickle
+*.pkl
+
+# Redis dumps
+dump.rdb
+
+# PostgreSQL
+*.sql.backup
+pg_data/
+
+# Certificates
+*.pem
+*.crt
+*.key
+*.p12
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Config overrides (keep template, ignore personal configs)
+config.local.yaml
+config.local.yml
+config.override.*
+
+# Personal notes and scratch files
+notes/
+scratch/
+todo.txt
+personal/
+
+# Performance and profiling
+*.prof
+*.profile
+
+# Coverage reports
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Environments
+.env.production
+.env.development
+.env.staging
+.env.test

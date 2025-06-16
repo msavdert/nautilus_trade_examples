@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  # Redis - Caching ve session management
+  redis:
+    image: redis:7-alpine
+    container_name: nautilus-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
+  # PostgreSQL - Database (isteğe bağlı)
+  postgres:
+    image: postgres:15-alpine
+    container_name: nautilus-postgres
+    environment:
+      POSTGRES_DB: nautilus_trader
+      POSTGRES_USER: nautilus
+      POSTGRES_PASSWORD: password123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Nautilus Trader Sandbox
+  nautilus-sandbox-trader:
+    build: .
+    container_name: nautilus-sandbox-trader
+    depends_on:
+      - redis
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+      - ./data:/app/data
+      - ./.env:/app/.env
+    environment:
+      - REDIS_HOST=redis
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=nautilus_trader
+      - POSTGRES_USER=nautilus  
+      - POSTGRES_PASSWORD=password123
+    command: python sandbox_trader.py
+
+volumes:
+  redis_data:
+  postgres_data:
