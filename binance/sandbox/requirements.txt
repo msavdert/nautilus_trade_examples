@@ -1,0 +1,42 @@
+# Binance Spot Trading Client Dependencies
+# Core HTTP and WebSocket libraries
+aiohttp==3.9.1
+websockets==12.0
+requests==2.31.0
+
+# Cryptography for API signatures
+cryptography==41.0.8
+
+# Data handling
+pandas==2.1.4
+numpy==1.26.2
+
+# Async support
+asyncio-mqtt==0.16.1
+
+# Configuration and environment
+python-dotenv==1.0.0
+pydantic==2.5.2
+pydantic-settings==2.1.0
+
+# Logging and monitoring
+structlog==23.2.0
+colorlog==6.8.0
+
+# Testing (for development)
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+
+# Type checking
+mypy==1.7.1
+
+# Code formatting
+black==23.11.0
+flake8==6.1.0
+
+# JSON handling
+orjson==3.9.10
+
+# Time handling
+pytz==2023.3
