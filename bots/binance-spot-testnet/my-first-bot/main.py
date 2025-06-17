@@ -31,8 +31,12 @@ class TestStrategy(Strategy):
         self.spot_instrument = None  # Initialized in on_start
 
     def on_start(self) -> None:
+        self.log.info("📈 TestStrategy starting up...")
+        
         self.spot_instrument = self.cache.instrument(self.config.spot_instrument_id)
         if self.spot_instrument is None:
+            error_msg = f"Could not find instrument for {self.config.spot_instrument_id}"
+            self.log.error(error_msg)
             self.log.error(
                 f"Could not find instrument for {self.config.spot_instrument_id}"
                 f"\nPossible instruments: {self.cache.instrument_ids()}",
@@ -43,6 +47,8 @@ class TestStrategy(Strategy):
         # Get account balances
         account = self.portfolio.account(venue=self.spot_instrument.venue)
         balances = {str(currency): str(balance) for currency, balance in account.balances().items()}
+        
+        self.log.info(f"💰 Account balances loaded: {balances}")
         self.log.info(f"Spot balances\n{json.dumps(balances, indent=4)}", LogColor.GREEN)
 
         # Note: Binance Spot Testnet has limited WebSocket support
@@ -51,13 +57,24 @@ class TestStrategy(Strategy):
         self.log.info("ℹ️  Real-time streams not available on testnet (this is normal)", LogColor.BLUE)
         self.log.info("🤖 Bot is running in simulation mode...", LogColor.GREEN)
         
+        self.log.info("🔄 Bot is now running and waiting for market data...")
+        
         # For testnet, we'll work without live market data
         # In production, you would subscribe to real streams:
         # self.subscribe_trade_ticks(self.config.spot_instrument_id)
         # self.subscribe_quote_ticks(self.config.spot_instrument_id)
 
     def on_data(self, data: Data) -> None:
-        self.log.info(f"📊 Received data: {repr(data)}", LogColor.CYAN)
+        if isinstance(data, QuoteTick):
+            self.log.info(f"💱 Quote: {data.instrument_id} - Bid: {data.bid_price} Ask: {data.ask_price}", LogColor.CYAN)
+            
+        elif isinstance(data, TradeTick):
+            self.log.info(f"💰 Trade: {data.instrument_id} - Price: {data.price} Size: {data.size}", LogColor.YELLOW)
+            
+        elif isinstance(data, Bar):
+            self.log.info(f"📈 Bar: {data.bar_type} - OHLCV: {data.open}/{data.high}/{data.low}/{data.close}/{data.volume}", LogColor.GREEN)
+        else:
+            self.log.info(f"📋 {data}", LogColor.BLUE)
 
     def on_quote_tick(self, tick: QuoteTick) -> None:
         self.log.info(f"💰 Quote tick: {repr(tick)}", LogColor.CYAN)
@@ -69,9 +86,8 @@ class TestStrategy(Strategy):
         self.log.info(f"📈 Bar data: {repr(bar)}", LogColor.CYAN)
 
     def on_stop(self) -> None:
-        # Clean stop - no subscriptions to unsubscribe in testnet mode
-        self.log.info("🛑 Strategy stopped successfully", LogColor.BLUE)
-
+        self.log.info("🛑 Strategy stopped successfully", LogColor.YELLOW)
+        self.log.info("Canceling executor tasks")
 
 async def main():
     """
@@ -142,6 +158,8 @@ async def shutdown_node_safely(node: TradingNode):
 
 # Stop and dispose of the node with SIGINT/CTRL+C
 if __name__ == "__main__":
+    print("🚀 Starting Bot with Nautilus Native Logging...")
+    
     try:
         asyncio.run(main())
     except KeyboardInterrupt:

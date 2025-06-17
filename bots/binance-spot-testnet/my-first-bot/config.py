@@ -38,8 +38,22 @@ def create_config() -> TradingNodeConfig:
         trader_id=TraderId("TESTER-001"),
         logging=LoggingConfig(
             log_level="INFO",
+            log_level_file="DEBUG",  # File'da daha detaylı loglar
             log_colors=True,
             use_pyo3=True,
+            log_file_format="json",  # JSON format için daha kolay parsing
+            log_directory="/workspace/logs",
+            log_file_name="nautilus_bot",  # Custom dosya adı
+            log_file_max_size=50_000_000,  # 50MB rotation
+            log_file_max_backup_count=10,  # 10 backup dosya tut
+            clear_log_file=False,  # Başlangıçta dosyayı silme
+            log_component_levels={
+                "Portfolio": "INFO",
+                "DataEngine": "INFO", 
+                "RiskEngine": "WARNING",
+                "ExecEngine": "INFO",
+                "TestStrategy": "DEBUG",  # Strategy loglarını detaylı
+            },
         ),
         exec_engine=LiveExecEngineConfig(
             reconciliation=True,
