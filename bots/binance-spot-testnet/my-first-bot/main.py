@@ -4,8 +4,7 @@ import asyncio
 import json
 from decimal import Decimal
 
-from nautilus_trader.adapters.binance.factories import BinanceLiveDataClientFactory
-from nautilus_trader.adapters.sandbox.factory import SandboxLiveExecClientFactory
+from nautilus_trader.adapters.binance.factories import BinanceLiveDataClientFactory, BinanceLiveExecClientFactory
 from nautilus_trader.common.enums import LogColor
 from nautilus_trader.core.data import Data
 from nautilus_trader.live.node import TradingNode
@@ -111,7 +110,7 @@ async def main():
 
     # Register your client factories with the node (can take user-defined factories)
     node.add_data_client_factory("BINANCE", BinanceLiveDataClientFactory)
-    node.add_exec_client_factory("BINANCE", SandboxLiveExecClientFactory)
+    node.add_exec_client_factory("BINANCE", BinanceLiveExecClientFactory)
     node.build()
 
     print("🚀 Starting Nautilus Trader bot...")

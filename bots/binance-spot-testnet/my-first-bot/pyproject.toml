@@ -7,6 +7,7 @@ dependencies = [
     "ccxt>=4.4.89",
     "nautilus_trader[binance]>=1.199.0",
     "python-dotenv>=1.0.0",
+    "requests>=2.32.4",
 ]
 
 [project.optional-dependencies]

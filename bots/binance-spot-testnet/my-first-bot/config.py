@@ -6,8 +6,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from nautilus_trader.adapters.binance.common.enums import BinanceAccountType
-from nautilus_trader.adapters.binance.config import BinanceDataClientConfig
-from nautilus_trader.adapters.sandbox.config import SandboxExecutionClientConfig
+from nautilus_trader.adapters.binance.config import BinanceDataClientConfig, BinanceExecClientConfig
+from nautilus_trader.model.identifiers import InstrumentId
 from nautilus_trader.config import (
     CacheConfig,
     InstrumentProviderConfig,
@@ -37,7 +37,7 @@ def create_config() -> TradingNodeConfig:
     return TradingNodeConfig(
         trader_id=TraderId("TESTER-001"),
         logging=LoggingConfig(
-            log_level="INFO",
+            log_level="DEBUG",  # DEBUG seviyesinde daha detaylı loglar
             log_level_file="DEBUG",  # File'da daha detaylı loglar
             log_colors=True,
             use_pyo3=True,
@@ -70,18 +70,25 @@ def create_config() -> TradingNodeConfig:
                 api_key=api_key,  # Explicitly set API key
                 api_secret=api_secret,  # Explicitly set API secret
                 account_type=BinanceAccountType.SPOT,
-                base_url_http=None,  # Override with custom endpoint if needed
-                base_url_ws=None,    # Override with custom endpoint if needed
+                base_url_http="https://testnet.binance.vision/api",  # 2025 Resmi Testnet REST API
+                base_url_ws="wss://stream.testnet.binance.vision/ws",    # 2025 Resmi Testnet WebSocket
                 us=False,
                 testnet=True,  # Enable testnet mode
-                instrument_provider=InstrumentProviderConfig(load_all=True),
+                instrument_provider=InstrumentProviderConfig(
+                    load_all=True,  # Load all instruments - simpler approach
+                ),
             ),
         },
         exec_clients={
-            "BINANCE": SandboxExecutionClientConfig(
-                venue="BINANCE",
-                account_type="CASH",
-                starting_balances=["1000 USDT", "0.01 BTC"],
+            "BINANCE": BinanceExecClientConfig(
+                venue=Venue("BINANCE"),
+                api_key=api_key,  # Explicitly set API key
+                api_secret=api_secret,  # Explicitly set API secret
+                account_type=BinanceAccountType.SPOT,
+                base_url_http="https://testnet.binance.vision/api",  # 2025 Resmi Testnet REST API
+                base_url_ws="wss://stream.testnet.binance.vision/ws",    # 2025 Resmi Testnet WebSocket
+                us=False,
+                testnet=True,  # Enable testnet mode
             ),
         },
         timeout_connection=30.0,
