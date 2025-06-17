@@ -29,7 +29,7 @@ services:
       - redis
     restart: unless-stopped
     env_file:
-      - ./bots/binance-spot-testnet/my-first-bot/.env
+      - ./.env
     environment:
       - PYTHONUNBUFFERED=1
       - REDIS_HOST=redis
