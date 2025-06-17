@@ -1,23 +1,49 @@
-# Nautilus Trader Minimal Setup
+# Nautilus Trader Examples
 
-Bu minimal setup sadece Redis ile çalışır ve PostgreSQL kullanmaz. GitHub'daki orijinal Nautilus Trader .docker yapısına uygun olarak oluşturulmuştur.
+Bu proje, Nautilus Trader ile farklı borsa ve stratejilerde trading botları geliştirme örneklerini içerir.
 
-## Gereksinimler
+## 📋 Proje Yapısı
 
-Öncelikle Nautilus Trader repository'sini clone edin:
-
-```bash
-git clone https://github.com/nautechsystems/nautilus_trader.git
+```
+nautilus_trade_examples/
+├── docs/                           # Dokümantasyon
+│   ├── trading-fundamentals.md     # Trading temel bilgileri
+│   ├── risk-management.md          # Risk yönetimi
+│   └── bot-guides/                 # Bot geliştirme rehberleri
+│       └── binance-spot-testnet.md # Binance Spot Testnet bot rehberi
+├── bots/                           # Trading botları
+│   ├── binance-spot-testnet/       # Binance Spot Testnet bot
+│   ├── binance-futures-testnet/    # (Gelecek)
+│   └── arbitrage-bot/              # (Gelecek)
+├── docker-compose.yml              # Nautilus Trader container
+├── .env.example                    # Environment variables template
+└── README.md                       # Bu dosya
 ```
 
-Bu repository'den ihtiyacınız olan dosyaları (uv.lock, pyproject.toml, vs.) bu dizine kopyalayabilirsiniz.
+## 🚀 Hızlı Başlangıç
 
-## Kullanım
-
-### 1. Servisleri Başlatma
-
+### 1. Container'ı Başlat
 ```bash
 docker-compose up -d
+```
+
+### 2. Container'a Bağlan
+```bash
+docker exec -it nautilus-trader bash
+```
+
+### 3. Bot Projesi Oluştur
+```bash
+cd /workspace/bots/binance-spot-testnet
+uv init my-spot-bot
+cd my-spot-bot
+uv add nautilus_trader
+```
+
+### 4. Environment Variables Ayarla
+```bash
+cp .env.example .env
+# .env dosyasını düzenle ve API keys ekle
 ```
 
 ### 2. İnteraktif Shell
@@ -160,3 +186,25 @@ cd /workspace && uv init my-trading-bot && cd my-trading-bot
 - Basic trading yapıyorsanız
 
 > **Not:** Redis **server** zaten Docker'da çalışıyor. `uv add redis` sadece Python'dan Redis'e bağlanmak için gerekli.
+
+## 📚 Dokümantasyon
+
+- [Trading Bot Geliştirme Temelleri](docs/trading-fundamentals.md)
+- [Risk Yönetimi](docs/risk-management.md)
+- [Binance Spot Testnet Bot Rehberi](docs/bot-guides/binance-spot-testnet.md)
+
+## ⚠️ Önemli Notlar
+
+- **Güvenlik**: API anahtarlarınızı asla git'e commit etmeyin
+- **Testnet**: Gerçek para ile test etmeden önce mutlaka testnet kullanın
+- **Risk Yönetimi**: Her zaman stop-loss ve position sizing kullanın
+- **Öğrenme**: Küçük miktarlarla başlayın ve adım adım öğrenin
+
+## 🔗 Faydalı Linkler
+
+- [Nautilus Trader Docs](https://nautilustrader.io/)
+- [Binance API Docs](https://developers.binance.com/)
+- [Binance Testnet](https://testnet.binance.vision/)
+
+---
+**Not**: Bu projeler eğitim amaçlıdır. Trading riskleri taşır, kendi sorumluluğunuzda kullanın.

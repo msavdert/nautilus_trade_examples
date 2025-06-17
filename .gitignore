@@ -1,5 +1,10 @@
 # Sandbox .gitignore - Docker workspace dosyalarını hariç tut
 
+# Environment files - ASLA commit etmeyin!
+.env
+*.env
+!.env.example
+
 # Docker container'dan çekilen nautilus_trader repo'su
 nautilus_trader/
 
@@ -10,11 +15,19 @@ trading-project/
 logs/
 *.log
 
-# uv lock ve cache dosyaları (eğer host'a kopyalanırsa)
-uv.lock
+# Python environments ve cache
 .venv/
+venv/
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# uv lock ve cache dosyaları (eğer host'a kopyalanırsa)
+uv.lock
+.uv-cache/
 
 # Docker build cache
 .docker/
