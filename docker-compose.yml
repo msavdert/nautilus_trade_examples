@@ -1,5 +1,3 @@
-version: '3.5'
-
 services:
   # 🚀 Redis Cache
   # Real-time market data, order book, recent trades caching

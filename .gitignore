@@ -1,179 +1,47 @@
-# Nautilus Trader - .gitignore
+# Sandbox .gitignore - Docker workspace dosyalarını hariç tut
 
-# API Anahtarları ve Hassas Bilgiler
-.env
-.env.local
-.env.*.local
-*.key
-*.secret
+# Docker container'dan çekilen nautilus_trader repo'su
+nautilus_trader/
 
-# Nautilus Trader Log Dosyaları
+# Docker container içinde oluşturulan trading projesi
+trading-project/
+
+# Docker volume'leri ve container verileri
 logs/
 *.log
-log/
-log.txt
-nautilus_trader.log
 
-# Nautilus Trader Cache ve Data
-data/
-cache/
-.nautilus/
-*.db
-*.sqlite
-*.sqlite3
-
-# Python
+# uv lock ve cache dosyaları (eğer host'a kopyalanırsa)
+uv.lock
+.venv/
 __pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+*.pyc
 
-# Virtual Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-myenv/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# pytest
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Docker
+# Docker build cache
 .docker/
 
-# Docker Sandbox - Container workspace dosyaları
-binance/sandbox/nautilus_trader/
-binance/sandbox/trading-project/
-binance/sandbox/logs/
-sandbox/trading-project/
-sandbox/nautilus_trader/
-
-# UV package manager dosyaları (container'dan gelebilir)
-uv.lock
-**/uv.lock
-
-# Docker development dosyaları
-**/Dockerfile.dev
-**/docker-compose.override.yml
-
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-Icon?
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
+# Geçici dosyalar
 *.tmp
 *.temp
-Desktop.ini
-$RECYCLE.BIN/
+temp/
+tmp/
 
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
+# OS dosyaları
+.DS_Store
+Thumbs.db
 
-# Backup files
+# IDE dosyaları
+.vscode/
+.idea/
+
+# Backup dosyaları
 *.bak
 *.backup
 *.old
-*.orig
 
-# Trading specific
-*.csv.backup
-historical_data/
-backtest_results/
-*.pickle
-*.pkl
-
-# Redis dumps
-dump.rdb
-
-# PostgreSQL
-*.sql.backup
-pg_data/
-
-# Certificates
-*.pem
-*.crt
-*.key
-*.p12
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-
-# Config overrides (keep template, ignore personal configs)
-config.local.yaml
-config.local.yml
-config.override.*
-
-# Personal notes and scratch files
-notes/
-scratch/
-todo.txt
-personal/
-
-# Performance and profiling
-*.prof
-*.profile
-
-# Coverage reports
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-
-# Environments
-.env.production
-.env.development
-.env.staging
-.env.test
+# Test ve geçici projeler (container içinde oluşturulan)
+test-project/
+my-trading-project/
+my-project/
+*-project/
+demo-*/
+example-*/

@@ -1,169 +1,162 @@
-# 🌊 Nautilus Trader - Professional Trading Framework
+# Nautilus Trader Minimal Setup
 
-[![License](https://img.shields.io/badge/license-LGPL--3.0-blue.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
-[![Docker](https://img.shields.io/badge/docker-compose-blue.svg)](https://docs.docker.com/compose/)
+Bu minimal setup sadece Redis ile çalışır ve PostgreSQL kullanmaz. GitHub'daki orijinal Nautilus Trader .docker yapısına uygun olarak oluşturulmuştur.
 
-**Professional algorithmic trading framework with multiple environment support.**
+## Gereksinimler
 
-> 🇹🇷 **Türkçe dokümantasyon için**: [README.tr.md](README.tr.md)
-
----
-
-## 📁 Project Structure
-
-```
-nautilus_trade/
-├── README.md                   # This overview (English)
-├── README.tr.md               # Turkish overview
-├── sandbox/                   # 🧪 Safe testing environment
-│   ├── README.md             #    Complete sandbox documentation (English)
-│   ├── README.tr.md          #    Complete sandbox documentation (Turkish)
-│   ├── docker-compose.yml    #    Sandbox deployment
-│   ├── sandbox_trader.py     #    Trading bot implementation
-│   ├── .env                  #    Environment variables
-│   ├── Dockerfile            #    Container configuration
-│   └── pyproject.toml        #    Python dependencies and project config
-└── live/                     # 🔴 Live trading environment
-    └── (future implementation)
-```
-
----
-
-## 🧪 Sandbox Environment
-
-The **sandbox** environment provides a completely safe testing environment using Binance Testnet:
-
-- **Safe Testing**: Uses virtual money, no real funds at risk
-- **Real Market Data**: Live data from Binance Testnet
-- **Professional Architecture**: PostgreSQL + Redis + Nautilus Trader
-- **EMA Cross Strategy**: Proven algorithmic trading strategy
-- **Docker Containerized**: One-command deployment
-- **Comprehensive Documentation**: Detailed setup and usage guide
-
-**👉 Get started with sandbox trading:**
+Öncelikle Nautilus Trader repository'sini clone edin:
 
 ```bash
-cd sandbox/
-# Follow the detailed README.md in sandbox directory
+git clone https://github.com/nautechsystems/nautilus_trader.git
 ```
 
----
+Bu repository'den ihtiyacınız olan dosyaları (uv.lock, pyproject.toml, vs.) bu dizine kopyalayabilirsiniz.
 
-## 🔴 Live Environment
+## Kullanım
 
-The **live** environment is designed for real trading with actual funds:
-
-⚠️ **WARNING: Live trading involves real money and substantial risk!**
-
-- **Real Trading**: Uses live exchange APIs with real funds
-- **Production Architecture**: Scalable, monitored, backed up
-- **Advanced Risk Management**: Enhanced safety controls
-- **Regulatory Compliance**: Meets trading regulations
-- **Professional Monitoring**: Real-time alerts and dashboards
-
-**🚧 Status: Under Development**
-
-The live environment is currently under development. For now, please use the sandbox environment for testing and development.
-
----
-
-## 🚀 Quick Start
-
-### For Sandbox Testing
+### 1. Servisleri Başlatma
 
 ```bash
-# 1. Navigate to sandbox
-cd sandbox/
-
-# 2. Follow the complete setup guide
-cat README.md
-
-# 3. Quick start (requires .env setup)
 docker-compose up -d
 ```
 
-### For Development
+### 2. İnteraktif Shell
 
 ```bash
-# 1. Clone repository
-git clone <repository-url>
-cd nautilus_trade
-
-# 2. Choose your environment
-cd sandbox/     # For safe testing
-# cd live/      # For real trading (future)
-
-# 3. Follow environment-specific documentation
+docker-compose exec nautilus-trader bash
 ```
 
----
+### 3. Nautilus Trader Kurulumu (Container içinde)
 
-## 🛠️ Development Philosophy
-
-This project follows a **multi-environment approach**:
-
-1. **Sandbox First**: Always test in sandbox before live trading
-2. **Manual Control**: No automatic scripts - you control everything
-3. **Transparent Configuration**: All settings visible and configurable
-4. **Professional Architecture**: Production-ready from day one
-5. **Safety First**: Multiple layers of protection and validation
-
----
-
-## 📚 Documentation
-
-### Complete Guides
-
-- **📖 Sandbox Guide**: `sandbox/README.md` - Complete sandbox documentation
-- **🔧 API Reference**: [Nautilus Trader Docs](https://docs.nautilustrader.io/)
-- **📊 Strategy Development**: Examples and tutorials in sandbox
-- **🔒 Security Guide**: Best practices for safe trading
-
-### Quick References
-
-- **Docker Commands**: `docker-compose up/down/logs`
-- **Environment Setup**: `.env` file configuration
-- **Log Monitoring**: Real-time system monitoring
-- **Troubleshooting**: Common issues and solutions
-
----
-
-## 🤝 Contributing
-
-We welcome contributions to both sandbox and live environments:
-
-1. **Start with Sandbox**: Test your changes in sandbox first
-2. **Follow Architecture**: Maintain separation between environments
-3. **Add Documentation**: Update relevant README files
-4. **Test Thoroughly**: Ensure changes work in Docker containers
-5. **Security Review**: Consider security implications
-
----
-
-## ⚠️ Important Notes
-
-- **Always Start with Sandbox**: Never begin with live trading
-- **Manual Operation**: This system requires manual setup and monitoring
-- **Risk Management**: You are responsible for all trading decisions
-- **No Automation**: No automatic scripts - manual control only
-- **Educational Purpose**: Primarily for learning algorithmic trading
-
----
-
-## 📄 License
-
-This project is licensed under the LGPL-3.0 License.
-
----
-
-## 🚀 Get Started
-
-**Ready to start algorithmic trading?**
+Container içinde trading projesi oluşturun ve Nautilus Trader'ı ekleyin:
 
 ```bash
-cd sandbox/
-cat README.md  # Read the complete guide
+# Container içinde çalıştır
+
+# 1. YENİ PROJE OLUŞTUR (gerekli!)
+uv init my-trading-project
+
+# 2. PROJE DİZİNİNE GİR
+cd my-trading-project
+
+# 3. NAUTILUS TRADER EKLE
+uv add nautilus_trader
+
+# 4. (İSTEĞE BAĞLI) Redis direct access için
+uv add redis
+
+# 5. KURULUMU TEST ET
+uv run python -c "import nautilus_trader; print('Nautilus Trader kurulumu başarılı!')"
 ```
 
-**Happy Trading!** 📈🌊
+**ÖNEMLİ:** `uv add` komutunu kullanmadan önce mutlaka `uv init` ile proje oluşturmalısınız!
+
+#### Alternatif: Tek Komutla
+
+```bash
+# Tek seferde proje oluştur + Nautilus Trader ekle
+uv init trading-project && cd trading-project && uv add nautilus_trader
+```
+
+### 4. Servisleri Durdurma
+
+```bash
+docker-compose down
+```
+
+## Yapı
+
+- **Redis**: Market data caching için
+- **Nautilus Trader**: Ana trading engine (minimal kurulum)
+- **Volumes**: Redis data persistence
+
+## Notlar
+
+- PostgreSQL dahil değildir (isteğiniz üzerine)
+- Sadece Redis ile minimal bir kurulum
+- Development için hazır
+- Orijinal Nautilus .docker yapısına uygun
+
+## Sonraki Adımlar
+
+1. Nautilus repository'den gerekli dosyaları kopyalayın
+2. Trading script'lerinizi ekleyin
+3. İhtiyaçlarınıza göre genişletin
+
+## Yaygın Hatalar ve Çözümleri
+
+### ❌ Hata: `No pyproject.toml found`
+```bash
+uv add nautilus_trader
+# error: No `pyproject.toml` found in current directory
+```
+
+**Çözüm:** Önce proje oluşturun
+```bash
+uv init my-project
+cd my-project
+uv add nautilus_trader
+```
+
+### ❌ Hata: Container'a bağlanamama
+```bash
+docker-compose exec nautilus-trader bash
+# Error: No such container
+```
+
+**Çözüm:** Container'ın çalışıp çalışmadığını kontrol edin
+```bash
+docker-compose ps
+docker-compose up -d  # Eğer çalışmıyorsa
+```
+
+### ❌ Hata: `No module named 'redis'`
+```bash
+# Test script çalıştırırken
+python test_setup.py
+# ❌ ModuleNotFoundError: No module named 'redis'
+```
+
+**Çözüm:** Redis Python client'ını ekleyin
+```bash
+uv add redis
+```
+
+### ✅ Doğru Adım Sırası
+1. `docker-compose up -d` - Container'ları başlat
+2. `docker exec -it nautilus-trader bash` - Container'a bağlan  
+3. `uv init my-project` - Yeni proje oluştur
+4. `cd my-project` - Proje dizinine gir
+5. `uv add nautilus_trader` - Nautilus Trader ekle
+6. `uv run python your_script.py` - Script çalıştır
+
+### 💡 İpuçları
+
+**Test Projeleri İçin:**
+```bash
+# Git sorunlarını önlemek için geçici test klasörü oluşturun
+cd /tmp && uv init test-project && cd test-project
+```
+
+**Production Projeleri İçin:**
+```bash
+# Ana workspace'de gerçek projelerinizi oluşturun
+cd /workspace && uv init my-trading-bot && cd my-trading-bot
+```
+
+**Paket Açıklamaları:**
+- `nautilus_trader`: Ana trading framework (zorunlu)
+- `redis`: Redis veritabanına direct erişim için (isteğe bağlı)
+
+### Redis Ne Zaman Gerekli?
+
+✅ **Redis paketi GEREKLİ:**
+- Custom caching logic yazıyorsanız
+- Redis'ten direkt veri okuyacaksanız  
+- Test script'lerini çalıştıracaksanız
+
+❌ **Redis paketi GEREKLİ DEĞİL:**
+- Sadece Nautilus Trader kullanıyorsanız
+- Basic trading yapıyorsanız
+
+> **Not:** Redis **server** zaten Docker'da çalışıyor. `uv add redis` sadece Python'dan Redis'e bağlanmak için gerekli.
