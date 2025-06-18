@@ -28,8 +28,6 @@ services:
     depends_on:
       - redis
     restart: unless-stopped
-    env_file:
-      - ./.env
     environment:
       - PYTHONUNBUFFERED=1
       - REDIS_HOST=redis

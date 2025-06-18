@@ -48,21 +48,27 @@ docker exec -it nautilus-trader bash
 
 ## 📚 Dokümantasyon
 
-İlk botunuzu oluşturduktan sonra, `docs/` klasörü altında kapsamlı adım adım dokümantasyon yazacağız:
-- Nautilus ile sıfırdan trading botu nasıl yazılır
+İlk botunuzu oluşturduktan sonra, adım adım yeni başlayan rehberlerimizi takip edebilirsiniz:
+
+### 🎯 Buradan Başlayın: İlk Botunuz
+- **[İlk Botum - Tam Yeni Başlayan Rehberi](docs/bot-guides/my-first-bot.tr.md)** - Sıfırdan basit hareketli ortalama trading botu oluşturmayı öğrenin
+
+### 📚 Ek Dokümantasyon
+- Nautilus ile sıfırdan trading botları nasıl yazılır
 - Adım adım bot geliştirme rehberleri
 - En iyi uygulamalar ve örnekler
 
 ## 🛠️ Geliştirme İş Akışı
 
 1. **Başlatma**: Yukarıdaki komutları kullanarak ilk botunuzu oluşturun
-2. **Öğrenme**: `docs/` klasöründeki dokümantasyonu takip edin
+2. **Öğrenme**: [İlk Botum rehberini](docs/bot-guides/my-first-bot.tr.md) takip edin
 3. **Geliştirme**: Trading stratejilerinizi yazın
 4. **Test**: Güvenli test için testnet ortamları kullanın
 5. **Dağıtım**: Hazır olduğunuzda canlı trading'e geçin
 
 ## 📝 Mevcut Dokümantasyon
 
+- **[İlk Botum Rehberi](docs/bot-guides/my-first-bot.tr.md)** - Tam yeni başlayan eğitimi
 - [Trading Temelleri](docs/trading-fundamentals.md)
 - [Risk Yönetimi](docs/risk-management.md)
 - [Loglama Rehberi](docs/LOGGING.md)
@@ -86,6 +92,34 @@ docker exec -it nautilus-trader bash
 ## 🔧 Redis Kurulumu
 
 Redis, market verisi önbellekleme için Docker kurulumuna dahildir ve otomatik olarak yapılandırılır.
+
+### Botunuza Redis Ekleme (İsteğe Bağlı)
+
+Redis **sunucusu** zaten Docker'da çalışıyor. Eğer bot kodunuzda Redis'i direkt kullanmak istiyorsanız, Python Redis client'ını eklemeniz gerekir:
+
+```bash
+# Bot dizininize girin
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv add redis"
+```
+
+Veya zaten container içindeyseniz:
+```bash
+cd /workspace/bots/my-first-bot
+uv add redis
+```
+
+### Redis Paketi Ne Zaman Gerekli?
+
+✅ **Redis paketi GEREKLİ:**
+- Botunuzda özel önbellekleme mantığı yazıyorsanız
+- Redis'ten direkt veri erişimi yapacaksanız
+- Redis kullanan test scriptleri çalıştıracaksanız
+
+❌ **Redis paketi GEREKLİ DEĞİL:**
+- Temel Nautilus Trader kullanımı için
+- Basit trading stratejileri için
+
+> **Not:** Redis **sunucusu** zaten Docker'da çalışıyor. `uv add redis` sadece Python kodunun Redis'e bağlanması için gerekli.
 
 ### Redis Bağlantı Detayları
 - **Host**: `redis` (container içinden) veya `localhost` (host'tan)

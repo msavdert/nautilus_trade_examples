@@ -48,21 +48,27 @@ After creating your first bot, you can:
 
 ## 📚 Documentation
 
-After creating your first bot, we'll write comprehensive step-by-step documentation in the `docs/` folder covering:
+After creating your first bot, you can follow our step-by-step beginner guides:
+
+### 🎯 Start Here: Your First Bot
+- **[My First Bot - Complete Beginner Guide](docs/bot-guides/my-first-bot.md)** - Learn to build a simple moving average trading bot from scratch
+
+### 📚 Additional Documentation
 - How to write trading bots with Nautilus from scratch
-- Step-by-step bot development guides
+- Step-by-step bot development guides  
 - Best practices and examples
 
-## �️ Development Workflow
+## 🛠️ Development Workflow
 
 1. **Initialize**: Use the commands above to create your first bot
-2. **Learn**: Follow the documentation in `docs/` folder
+2. **Learn**: Follow the [My First Bot guide](docs/bot-guides/my-first-bot.md)
 3. **Develop**: Write your trading strategies
 4. **Test**: Use testnet environments for safe testing
 5. **Deploy**: Move to live trading when ready
 
-## � Available Documentation
+## 📝 Available Documentation
 
+- **[My First Bot Guide](docs/bot-guides/my-first-bot.md)** - Complete beginner tutorial
 - [Trading Fundamentals](docs/trading-fundamentals.md)
 - [Risk Management](docs/risk-management.md)
 - [Logging Guide](docs/LOGGING.md)
@@ -86,6 +92,34 @@ After creating your first bot, we'll write comprehensive step-by-step documentat
 ## 🔧 Redis Setup
 
 Redis is included in the Docker setup for market data caching and is automatically configured.
+
+### Adding Redis to Your Bot (Optional)
+
+The Redis **server** is already running in Docker. If you want to use Redis directly in your bot code, you need to add the Python Redis client:
+
+```bash
+# Enter your bot directory
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv add redis"
+```
+
+Or if you're already inside the container:
+```bash
+cd /workspace/bots/my-first-bot
+uv add redis
+```
+
+### When Do You Need Redis Package?
+
+✅ **Redis package REQUIRED:**
+- Custom caching logic in your bot
+- Direct Redis data access
+- Running test scripts that use Redis
+
+❌ **Redis package NOT REQUIRED:**
+- Basic Nautilus Trader usage
+- Simple trading strategies
+
+> **Note:** Redis **server** is already running in Docker. `uv add redis` is only needed for Python code to connect to Redis.
 
 ### Redis Connection Details
 - **Host**: `redis` (from container) or `localhost` (from host)
