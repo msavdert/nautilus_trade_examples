@@ -4,11 +4,11 @@ Welcome to your first journey into algorithmic trading with Nautilus Trader! Thi
 
 ## 🎯 What We'll Build
 
-We'll create a simple trading bot that:
-- Monitors market data for EUR/USD
-- Uses a basic moving average strategy
-- Places buy/sell orders based on simple rules
-- Runs entirely in a single `main.py` file
+We'll create trading bots that demonstrate:
+- **Basic Strategy**: Simple moving average strategy with logging best practices in `main.py`
+- **Advanced Logging Configuration**: Complete logging setup example in `logging_example.py`
+- **Comprehensive Documentation**: Best-practice logging guide in `LOGGING.md`
+- **Multiple Environments**: Development and production logging configurations
 
 ## 📚 Prerequisites
 
@@ -44,8 +44,17 @@ These commands will:
 my-first-bot/
 ├── pyproject.toml          # Project configuration and dependencies
 ├── README.md              # This documentation
-├── main.py                # Your trading strategy (we'll create this)
-└── uv.lock               # Dependency lock file
+├── main.py                # Basic trading strategy with logging examples
+├── logging_example.py     # Complete logging configuration example
+├── LOGGING.md             # Comprehensive logging documentation
+├── logs/                  # Log files directory (git-ignored)
+│   └── .gitignore         # Keeps logs out of version control
+└── .python-version        # Python version specification
+```
+├── LOGGING.md            # Comprehensive logging documentation
+├── logs/                 # Log files directory
+│   └── .gitignore        # Git ignore for log files
+└── uv.lock              # Dependency lock file
 ```
 
 ### 🔧 Dependencies in pyproject.toml
@@ -289,9 +298,86 @@ Most trading strategies follow this pattern:
 4. **Check trading conditions** (your strategy rules) - like in our main.py
 5. **Manage positions** (entry, exit, risk management)
 
+## 📊 Best-Practice Logging Setup
+
+This project includes a comprehensive logging setup that demonstrates Nautilus Trader best practices:
+
+### Files Overview
+
+- **`LOGGING.md`**: Complete logging documentation and best practices guide
+- **`logging_example.py`**: Complete, production-ready logging configuration example
+- **`main.py`**: Basic trading strategy demonstrating proper logging usage
+- **`logs/`**: Directory for log files (excluded from git)
+
+### Quick Start with Logging
+
+```bash
+# Test logging configuration (development mode)
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv run logging_example.py"
+
+# Test production logging configuration
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && TRADING_ENV=production uv run logging_example.py"
+
+# Run basic bot with logging examples
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv run main.py"
+
+# Review comprehensive logging documentation
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && cat LOGGING.md"
+```
+
+### Key Logging Features
+
+🎯 **Environment-Specific Configurations**
+- **Development**: INFO console, DEBUG files, colors enabled
+- **Production**: WARNING console, INFO files, JSON format
+- **Backtest**: ERROR console, DEBUG files, single file
+- **Debug**: Maximum verbosity, Rust component logs
+
+🔄 **Log Rotation & Management**
+- Automatic file rotation by size or date
+- Configurable backup file limits
+- Smart file naming with timestamps
+
+🎨 **Visual Clarity**
+- Color-coded log levels for console output
+- Emoji prefixes for different message types
+- Component-specific filtering
+
+📁 **File Organization**
+- Dedicated `logs/` directory per project
+- Automatic directory creation
+- Git-ignored log files
+
+### Environment Variables
+
+```bash
+# Set logging environment
+export LOG_ENVIRONMENT=production  # production, development, backtest, debug
+
+# Run with specific environment
+LOG_ENVIRONMENT=debug python enhanced_bot.py
+```
+
+### Logging in Your Own Strategies
+
+```python
+from logging_config import setup_logging
+
+# In your strategy configuration
+logging_config = setup_logging("production")  # or "development", "backtest", "debug"
+
+# In your strategy class
+self.log.info("🚀 Strategy starting", color=LogColor.GREEN)
+self.log.debug(f"📊 Price: {price:.5f}")
+self.log.warning("⚠️ Risk limit exceeded", color=LogColor.YELLOW)
+self.log.error("❌ Order failed", color=LogColor.RED)
+```
+
+**📖 Read `LOGGING.md` for complete documentation and best practices!**
+
 ## 🎓 What You've Learned
 
-Congratulations! You've just created your first trading bot. You now understand:
+Congratulations! You've just created your first trading bot with professional logging. You now understand:
 
 - ✅ How to create a Nautilus Strategy class
 - ✅ How to configure your bot with settings
@@ -299,6 +385,9 @@ Congratulations! You've just created your first trading bot. You now understand:
 - ✅ How to implement basic trading logic
 - ✅ How to place buy and sell orders
 - ✅ The structure of a complete trading bot
+- ✅ **Professional logging setup and best practices**
+- ✅ **Environment-specific configurations**
+- ✅ **Log rotation and file management**
 - ✅ The important dependencies needed in pyproject.toml
 
 ## 🛡️ Important Notes
