@@ -1,0 +1,10 @@
+[project]
+name = "example-01-load-bars-from-custom-csv"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "nautilus-trader>=1.218.0",
+    "pandas>=2.3.0",
+]
