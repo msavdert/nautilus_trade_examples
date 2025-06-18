@@ -19,7 +19,7 @@ services:
     container_name: nautilus-trader
     build:
       context: .
-      dockerfile: nautilus_trader.dockerfile
+      dockerfile: Dockerfile
     volumes:
       - .:/workspace
       - ./logs:/workspace/logs

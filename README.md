@@ -2,21 +2,17 @@
 
 A project for developing trading bots with Nautilus Trader across different exchanges and strategies.
 
+> **⚠️ Important**: All commands in this project must be run using `docker exec` inside the Docker container. This ensures proper environment setup and dependency management.
+
 ## 📋 Project Structure
 
 ```
 nautilus_trade_examples/
-├── docs/                           # Documentation
-│   ├── trading-fundamentals.md     # Trading fundamentals
-│   ├── risk-management.md          # Risk management
-│   ├── LOGGING.md                  # Logging guide
-│   └── bot-guides/                 # Bot development guides
-│       └── binance-spot-testnet.md # Binance Spot Testnet bot guide
 ├── bots/                           # Trading bots
-│   └── my-first-bot/               # Your first bot (created after setup)
+│   ├── my-first-bot/               # Complete beginner tutorial bot
+│   └── backtest-bot/               # Learn backtesting and strategy validation
 ├── docker-compose.yml              # Nautilus Trader container
-├── README.md                       # This file (English)
-├── README.tr.md                    # Turkish documentation
+├── README.md                       # This file
 └── logs/                           # Application logs
 ```
 
@@ -24,55 +20,63 @@ nautilus_trade_examples/
 
 This project allows you to develop your own trading bots from scratch using Nautilus Trader in a containerized environment.
 
+> **📝 Note**: All development happens inside Docker containers. This ensures consistent environment and proper dependency management.
+
 ### 1. Start the Container
 ```bash
 docker-compose up -d
 ```
+This starts both Redis cache and Nautilus Trader containers.
 
 ### 2. Create Your First Bot
 ```bash
+# All commands use docker exec to run inside the container
 docker exec -it nautilus-trader bash -c "cd /workspace/bots/ && uv init my-first-bot"
 docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv add nautilus_trader"
 ```
 
-### 3. Connect to Container (Optional)
+### 3. Test Your Setup
+```bash
+# Verify everything works
+docker exec -it nautilus-trader bash -c "cd /workspace/bots/my-first-bot && uv run python main.py"
+```
+
+### 4. Connect to Container (Optional)
+For interactive development:
 ```bash
 docker exec -it nautilus-trader bash
+# Now you're inside the container and can run commands directly
 ```
 
 ### 4. Develop Your Bot
 After creating your first bot, you can:
 - Navigate to `bots/my-first-bot/` in your editor
-- Follow the step-by-step documentation in `docs/` folder
-- Learn how to write trading bots from scratch with Nautilus
+- Follow the complete tutorial in the bot's README
+- Learn how to write trading bots from scratch
 
-## 📚 Documentation
+## 🤖 Available Bots
 
-After creating your first bot, you can follow our step-by-step beginner guides:
+### 1. [My First Bot](bots/my-first-bot/)
+**Perfect for absolute beginners**
+- Complete step-by-step tutorial
+- Simple moving average strategy
+- Detailed explanations of every concept
+- Single-file implementation
 
-### 🎯 Start Here: Your First Bot
-- **[My First Bot - Complete Beginner Guide](docs/bot-guides/my-first-bot.md)** - Learn to build a simple moving average trading bot from scratch
-
-### 📚 Additional Documentation
-- How to write trading bots with Nautilus from scratch
-- Step-by-step bot development guides  
-- Best practices and examples
+### 2. [Backtest Bot](bots/backtest-bot/)
+**Learn strategy testing and validation**
+- Comprehensive backtesting guide
+- Synthetic data generation
+- Performance analysis tools
+- Real data integration examples
 
 ## 🛠️ Development Workflow
 
 1. **Initialize**: Use the commands above to create your first bot
-2. **Learn**: Follow the [My First Bot guide](docs/bot-guides/my-first-bot.md)
-3. **Develop**: Write your trading strategies
-4. **Test**: Use testnet environments for safe testing
-5. **Deploy**: Move to live trading when ready
-
-## 📝 Available Documentation
-
-- **[My First Bot Guide](docs/bot-guides/my-first-bot.md)** - Complete beginner tutorial
-- [Trading Fundamentals](docs/trading-fundamentals.md)
-- [Risk Management](docs/risk-management.md)
-- [Logging Guide](docs/LOGGING.md)
-- [Bot Development Guides](docs/bot-guides/)
+2. **Learn**: Follow the [My First Bot](bots/my-first-bot/) tutorial
+3. **Test**: Learn backtesting with [Backtest Bot](bots/backtest-bot/)
+4. **Develop**: Write your own trading strategies
+5. **Validate**: Test thoroughly before live trading
 
 ## ⚠️ Important Notes
 
