@@ -15,6 +15,9 @@ trading-project/
 logs/
 *.log
 
+# Data dosyalari
+data/
+
 # Python environments ve cache
 .venv/
 venv/
