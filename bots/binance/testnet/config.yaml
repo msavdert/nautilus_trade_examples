@@ -1,0 +1,136 @@
+# Bot Configuration File
+# Binance Testnet Trading Bot Settings
+
+bot:
+  name: "BinanceTestnetVolatilityBot"
+  version: "1.0.0"
+  trader_id: "TESTNET-VOL-001"
+  
+exchange:
+  name: "BINANCE"
+  account_type: "USDT_FUTURE"  # SPOT, USDT_FUTURE, COIN_FUTURE
+  testnet: true
+  us: false
+  base_url_http: null  # Uses default testnet URLs
+  base_url_ws: null    # Uses default testnet URLs
+  
+trading:
+  # Coin Selection
+  max_coins: 50
+  min_24h_volume_usdt: 1000000  # Minimum 24h volume in USDT
+  exclude_stablecoins: true
+  exclude_fiat_pairs: true
+  
+  # Position Management
+  max_active_positions: 5
+  max_position_size_percent: 2.0  # % of total balance per position
+  max_risk_per_trade_percent: 1.0  # % of balance at risk per trade
+  
+  # Timeframes
+  primary_timeframe: "1-MINUTE"
+  secondary_timeframe: "5-MINUTE"
+  
+strategy:
+  name: "VolatilityBreakoutWithVolumeConfirmation"
+  
+  # Technical Indicators
+  atr_period: 14
+  bollinger_period: 20
+  bollinger_std: 2.0
+  rsi_period: 14
+  volume_period: 20
+  
+  # Entry Conditions
+  volume_threshold_multiplier: 1.5  # Volume must be 1.5x average
+  rsi_min: 30
+  rsi_max: 70
+  volatility_threshold_atr: 0.5  # ATR multiplier for volatility check
+  
+  # Exit Conditions
+  stop_loss_atr_multiplier: 2.0
+  take_profit_atr_multiplier: 3.0
+  trailing_stop_atr_multiplier: 1.5
+  
+  # Risk Management
+  max_drawdown_percent: 10.0
+  daily_loss_limit_percent: 5.0
+  
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file_format: "detailed"  # simple, detailed, json
+  log_to_file: true
+  log_to_console: true
+  max_file_size_mb: 50
+  backup_count: 5
+  
+execution:
+  # Order Execution
+  reconciliation: true
+  reconciliation_lookback_mins: 1440
+  filter_position_reports: true
+  
+  # Connection Settings
+  timeout_connection: 30.0
+  timeout_reconciliation: 10.0
+  timeout_portfolio: 10.0
+  timeout_disconnection: 10.0
+  timeout_post_stop: 5.0
+  
+  # Retries
+  max_retries: 3
+  retry_delay_initial_ms: 1000
+  retry_delay_max_ms: 10000
+  
+data:
+  # Data Sources
+  load_all_instruments: true
+  subscribe_trade_ticks: true
+  subscribe_quote_ticks: true
+  subscribe_order_book: false
+  
+  # Data Management
+  cache_timestamps_as_iso8601: true
+  flush_cache_on_start: false
+  
+safety:
+  # Emergency Settings
+  enable_emergency_stop: true
+  emergency_stop_loss_percent: 15.0
+  
+  # Kill Switch Conditions
+  max_consecutive_losses: 5
+  max_api_errors_per_minute: 10
+  
+  # Position Limits
+  max_leverage: 1.0  # Conservative leverage for testing
+  force_reduce_only: false
+  
+backtesting:
+  # Backtest Settings
+  start_date: "2024-01-01"
+  end_date: "2024-12-31"
+  initial_balance: 10000.0
+  commission_rate: 0.001  # 0.1% per trade
+  
+  # Data Requirements
+  warm_up_period: 100  # bars needed for indicators
+  
+notifications:
+  # Alert Settings
+  enable_trade_alerts: true
+  enable_error_alerts: true
+  enable_daily_summary: true
+  
+  # Performance Alerts
+  alert_on_drawdown: true
+  drawdown_alert_threshold: 5.0
+  
+development:
+  # Development Settings
+  debug_mode: false
+  paper_trading: true
+  save_trade_history: true
+  
+  # Testing
+  enable_unit_tests: true
+  enable_integration_tests: false

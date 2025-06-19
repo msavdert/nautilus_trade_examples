@@ -17,6 +17,7 @@ Usage:
 import argparse
 import logging
 from datetime import datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -78,30 +79,18 @@ class TradingBotRunner:
         engine = BacktestEngine(config)
         
         # Add simulated execution venue
-        from nautilus_trader.backtest.exchange import SimulatedExchange
-        from nautilus_trader.backtest.execution_client import BacktestExecClient
-        from nautilus_trader.model.enums import BookType
-        
-        # Create simulated exchange
-        exchange = SimulatedExchange(
-            venue=Venue("SIM"),
-            oms_type=OmsType.HEDGING,
-            account_type=AccountType.MARGIN,
-            base_currency=USD,
-            starting_balances=[Money(initial_balance, USD)],
-        )
-        
-        # Add the exchange to the engine
+        venue = Venue("SIM")
         engine.add_venue(
-            venue=Venue("SIM"),
+            venue=venue,
             oms_type=OmsType.HEDGING,
             account_type=AccountType.MARGIN,
             base_currency=USD,
             starting_balances=[Money(initial_balance, USD)],
+            default_leverage=Decimal(1),  # No leverage
         )
         
         # Add EUR/USD instrument
-        EURUSD_SIM = TestInstrumentProvider.default_fx_ccy("EUR/USD", Venue("SIM"))
+        EURUSD_SIM = TestInstrumentProvider.default_fx_ccy("EUR/USD", venue)
         engine.add_instrument(EURUSD_SIM)
         
         # Generate sample data for backtesting
@@ -142,21 +131,18 @@ class TradingBotRunner:
         engine = BacktestEngine(config)
         
         # Add simulated execution venue
-        from nautilus_trader.backtest.exchange import SimulatedExchange
-        from nautilus_trader.backtest.execution_client import BacktestExecClient
-        from nautilus_trader.model.enums import BookType
-        
-        # Add the exchange to the engine
+        venue = Venue("SIM")
         engine.add_venue(
-            venue=Venue("SIM"),
+            venue=venue,
             oms_type=OmsType.HEDGING,
             account_type=AccountType.MARGIN,
             base_currency=USD,
             starting_balances=[Money(initial_balance, USD)],
+            default_leverage=Decimal(1),  # No leverage
         )
         
         # Add EUR/USD instrument
-        EURUSD_SIM = TestInstrumentProvider.default_fx_ccy("EUR/USD", Venue("SIM"))
+        EURUSD_SIM = TestInstrumentProvider.default_fx_ccy("EUR/USD", venue)
         engine.add_instrument(EURUSD_SIM)
         
         # Generate demo data (recent data with random walks)
@@ -254,7 +240,7 @@ class TradingBotRunner:
         
         if account:
             self.logger.info(f"Final Account Balance: {account.balance_total()}")
-            self.logger.info(f"Total PnL: {portfolio.net_exposures()}")
+            self.logger.info("Backtest completed successfully!")
         
         # Get strategy statistics if available
         for strategy in engine.trader.strategies():
