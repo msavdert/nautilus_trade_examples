@@ -1,0 +1,120 @@
+[project]
+name = "one-three-melih-bot"
+version = "1.0.0"
+description = "Advanced Step-Back Risk Management EUR/USD Trading Bot using Nautilus Trader"
+authors = [
+    {name = "Melih Savdert", email = "melih@example.com"},
+]
+dependencies = [
+    "nautilus_trader>=1.218.0",
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "pyarrow>=12.0.0",
+]
+requires-python = ">=3.11"
+readme = "README_EN.md"
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+]
+
+backtest = [
+    "matplotlib>=3.7.0",
+    "seaborn>=0.12.0",
+    "plotly>=5.15.0",
+]
+
+live = [
+    "ccxt>=4.0.0",
+    "websockets>=11.0.0",
+    "redis>=4.6.0",
+]
+
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+skip-string-normalization = false
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "W",   # pycodestyle warnings
+    "C",   # mccabe
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "S",   # bandit
+    "B",   # flake8-bugbear
+    "A",   # flake8-builtins
+    "COM", # flake8-commas
+    "DTZ", # flake8-datetimez
+    "EM",  # flake8-errmsg
+    "G",   # flake8-logging-format
+    "PIE", # flake8-pie
+    "T20", # flake8-print
+    "SIM", # flake8-simplify
+    "ARG", # flake8-unused-arguments
+    "PTH", # flake8-use-pathlib
+    "ERA", # eradicate
+    "PD",  # pandas-vet
+    "PGH", # pygrep-hooks
+    "PL",  # pylint
+    "TRY", # tryceratops
+    "NPY", # numpy
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",    # line too long (handled by black)
+    "S101",    # use of assert
+    "PLR0913", # too many arguments
+    "PLR2004", # magic value comparison
+    "COM812",  # trailing comma missing (handled by black)
+    "ISC001",  # implicitly concatenated strings (handled by black)
+]
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["S101", "PLR2004", "ARG001"]
+"main.py" = ["T20"]  # Allow print statements in main
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "nautilus_trader.*",
+    "ccxt.*",
+    "redis.*",
+]
+ignore_missing_imports = true
