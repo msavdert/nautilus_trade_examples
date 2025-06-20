@@ -1,9 +1,9 @@
 [project]
-name = "binance-futures-testnet-bot"
-version = "2.0.0"
-description = "Advanced Binance Futures Testnet Trading Bot using Nautilus framework with RSI Mean Reversion Strategy"
+name = "binance-testnet-bot"
+version = "1.0.0"
+description = "Automated trading bot for Binance Testnet using Nautilus framework"
 authors = [
-    {name = "Crypto Trading Bot Developer", email = "dev@example.com"}
+    {name = "Trading Bot Developer", email = "dev@example.com"}
 ]
 readme = "README.md"
 license = {text = "MIT"}
@@ -23,10 +23,7 @@ dependencies = [
     "typing-extensions>=4.8.0",
     "psutil>=5.9.0",
     "matplotlib>=3.7.0",
-    "plotly>=5.17.0",
-    "ccxt>=4.2.0",
-    "websockets>=12.0",
-    "tenacity>=8.2.0"
+    "plotly>=5.17.0"
 ]
 
 [project.optional-dependencies]
@@ -36,8 +33,7 @@ dev = [
     "pytest-mock>=3.11.0",
     "black>=23.9.0",
     "flake8>=6.1.0",
-    "mypy>=1.6.0",
-    "pytest-cov>=4.1.0"
+    "mypy>=1.6.0"
 ]
 
 [build-system]
@@ -52,7 +48,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --cov=. --cov-report=html"
+addopts = "-v --tb=short"
 asyncio_mode = "auto"
 
 [tool.black]
@@ -70,7 +66,6 @@ extend-exclude = '''
   | \.venv
   | build
   | dist
-  | logs
 )/
 '''
 
@@ -87,29 +82,6 @@ disallow_untyped_decorators = true
 module = [
     "nautilus_trader.*",
     "ta.*",
-    "pandas_ta.*",
-    "ccxt.*"
+    "pandas_ta.*"
 ]
 ignore_missing_imports = true
-
-[tool.coverage.run]
-source = ["."]
-omit = [
-    "tests/*",
-    "*.egg-info/*",
-    "build/*",
-    "dist/*",
-    ".venv/*"
-]
-
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:"
-]

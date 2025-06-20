@@ -1,52 +1,42 @@
-# Binance Testnet Trading Bot Requirements
+# Binance Futures Testnet Trading Bot Requirements
+# This file provides pip-compatible requirements for users who prefer pip over uv
 
 # Core Nautilus Trading Framework
-nautilus_trader>=1.200.0
+nautilus_trader>=1.192.0
 
-# Environment and Configuration Management
+# HTTP client for API calls
+aiohttp>=3.8.0
+
+# Configuration and environment
+pydantic>=2.0.0
 python-dotenv>=1.0.0
 pyyaml>=6.0
 
-# HTTP Requests and API Interactions
-requests>=2.31.0
-aiohttp>=3.9.0
-
-# Data Processing and Analysis
-pandas>=2.1.0
+# Data processing and analysis
 numpy>=1.24.0
+pandas>=2.0.0
 
-# Technical Analysis Indicators
-ta-lib>=0.4.25
-pandas-ta>=0.3.14b0
+# Async utilities
+asyncio-throttle>=1.0.0
 
-# Async Programming Support
-asyncio-throttle>=1.0.2
-
-# Testing Framework
-pytest>=7.4.0
+# Testing (development)
+pytest>=7.0.0
 pytest-asyncio>=0.21.0
-pytest-mock>=3.11.0
 
-# Logging and Monitoring
-structlog>=23.2.0
+# Logging and monitoring
+structlog>=23.0.0
 
-# Mathematical Operations
-scipy>=1.11.0
+# Type checking (development)
+mypy>=1.0.0
 
-# Type Hints Support
-typing-extensions>=4.8.0
+# Code formatting (development)
+black>=23.0.0
+isort>=5.12.0
 
-# Development Tools (Optional)
-black>=23.9.0
-flake8>=6.1.0
-mypy>=1.6.0
+# Documentation (development)
+mkdocs>=1.5.0
+mkdocs-material>=9.0.0
 
-# Performance Monitoring (Optional)
-psutil>=5.9.0
-
-# Data Visualization for Backtesting (Optional)
-matplotlib>=3.7.0
-plotly>=5.17.0
-
-# Risk Management and Statistics
-statsmodels>=0.14.0
+# Note: This project uses uv for dependency management by default.
+# For uv installation and usage, see README.md
+# To install with pip instead: pip install -r requirements.txt

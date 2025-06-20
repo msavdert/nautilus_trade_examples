@@ -1,0 +1,52 @@
+# Binance Testnet Trading Bot Requirements
+
+# Core Nautilus Trading Framework
+nautilus_trader>=1.200.0
+
+# Environment and Configuration Management
+python-dotenv>=1.0.0
+pyyaml>=6.0
+
+# HTTP Requests and API Interactions
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# Data Processing and Analysis
+pandas>=2.1.0
+numpy>=1.24.0
+
+# Technical Analysis Indicators
+ta-lib>=0.4.25
+pandas-ta>=0.3.14b0
+
+# Async Programming Support
+asyncio-throttle>=1.0.2
+
+# Testing Framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+
+# Logging and Monitoring
+structlog>=23.2.0
+
+# Mathematical Operations
+scipy>=1.11.0
+
+# Type Hints Support
+typing-extensions>=4.8.0
+
+# Development Tools (Optional)
+black>=23.9.0
+flake8>=6.1.0
+mypy>=1.6.0
+
+# Performance Monitoring (Optional)
+psutil>=5.9.0
+
+# Data Visualization for Backtesting (Optional)
+matplotlib>=3.7.0
+plotly>=5.17.0
+
+# Risk Management and Statistics
+statsmodels>=0.14.0

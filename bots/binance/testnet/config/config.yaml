@@ -1,0 +1,92 @@
+# Configuration file for Binance Futures Testnet Bot
+# This file contains default trading and risk parameters
+
+# Trading Strategy Configuration
+trading:
+  strategy_name: "RSI_MEAN_REVERSION"
+  timeframe: "5m"
+  
+  # RSI Parameters
+  rsi_period: 14
+  rsi_oversold: 30.0
+  rsi_overbought: 70.0
+  rsi_extreme_oversold: 20.0
+  rsi_extreme_overbought: 80.0
+  rsi_neutral_lower: 40.0
+  rsi_neutral_upper: 60.0
+  
+  # Moving Average Trend Filter
+  ma_period: 20
+  ma_type: "SMA"  # SMA or EMA
+  
+  # Volume Confirmation
+  volume_period: 20
+  volume_threshold_multiplier: 1.2
+  
+  # Position Management
+  max_position_size_pct: 0.05  # 5% of account per position
+  max_position_size_usd: 1000.0
+  min_position_size_usd: 50.0
+  max_open_positions: 3
+  
+  # Risk Parameters
+  stop_loss_pct: 0.02  # 2%
+  take_profit_pct: 0.04  # 4%
+  max_daily_loss_pct: 0.10  # 10%
+  
+  # Leverage (Futures)
+  default_leverage: 5
+  max_leverage: 10
+  
+  # Instrument Selection
+  top_coins_count: 50
+  min_24h_volume_usdt: 10000000.0  # $10M minimum volume
+  excluded_coins:
+    - "USDCUSDT"
+    - "BUSDUSDT"
+    - "TUSDUSDT"
+
+# Risk Management Configuration
+risk:
+  # Account Protection
+  max_account_risk_pct: 0.15  # 15% max account risk
+  emergency_stop_loss_pct: 0.20  # 20% emergency stop
+  
+  # Position Sizing
+  base_position_size_usd: 100.0
+  max_position_size_usd: 1000.0
+  
+  # Drawdown Protection
+  max_drawdown_pct: 0.12  # 12% max drawdown
+  daily_loss_limit_pct: 0.08  # 8% daily loss limit
+  
+  # Rate Limiting
+  max_orders_per_minute: 10
+  max_api_calls_per_minute: 1200
+
+# API Endpoints (US Compatible)
+endpoints:
+  futures_base_url: "https://testnet.binancefuture.com"
+  futures_ws_url: "wss://stream.binancefuture.com"
+  futures_api_url: "https://testnet.binancefuture.com/fapi/v1"
+  futures_ws_stream: "wss://stream.binancefuture.com/ws"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  file_logging: true
+  max_log_files: 30
+  log_rotation: "daily"
+
+# Monitoring and Alerts
+monitoring:
+  health_check_interval: 30  # seconds
+  risk_check_interval: 60   # seconds
+  summary_interval: 300     # seconds (5 minutes)
+  
+# Development/Testing Options
+development:
+  debug_mode: false
+  simulate_orders: false  # For testing without actual orders
+  log_all_ticks: false
+  save_trade_history: true

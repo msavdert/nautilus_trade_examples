@@ -1,544 +1,446 @@
 """
-Test Suite for Volatility Breakout Strategy
-Comprehensive unit tests for the trading strategy components.
+Unit tests for the RSI Mean Reversion Strategy.
+
+These tests validate the strategy logic, risk management,
+and integration with the Nautilus framework.
 """
 
 import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, AsyncMock, patch
+from datetime import datetime, timezone
 from decimal import Decimal
-from datetime import datetime
 
-import numpy as np
+from nautilus_trader.model.identifiers import InstrumentId, Symbol, Venue, StrategyId
+from nautilus_trader.model.instruments import CurrencyPair
+from nautilus_trader.model.objects import Price, Quantity, Money
+from nautilus_trader.model.currencies import USD, BTC
+from nautilus_trader.model.enums import OrderSide, PriceType
+from nautilus_trader.model.data import Bar, BarType, BarSpecification
+from nautilus_trader.test_kit.stubs.identifiers import TestIdStubs
 
-from nautilus_trader.indicators.atr import AverageTrueRange
-from nautilus_trader.indicators.bollinger_bands import BollingerBands
-from nautilus_trader.indicators.rsi import RelativeStrengthIndex
-from nautilus_trader.model.data import Bar, BarType
-from nautilus_trader.model.enums import OrderSide, BarAggregation, PriceType
-from nautilus_trader.model.identifiers import InstrumentId, Symbol, Venue
-from nautilus_trader.model.objects import Price, Quantity
-from nautilus_trader.test_kit.mocks import MockClock
-from nautilus_trader.test_kit.providers import TestInstrumentProvider
-
-# Import strategy components
-from strategy import VolatilityBreakoutStrategy, VolatilityBreakoutConfig
-from risk_manager import RiskManager, RiskMetrics
-from utils import DataProcessor, PriceUtils, ValidationUtils
+from strategies.rsi_mean_reversion import RSIMeanReversionStrategy, RSIMeanReversionConfig
+from config import get_config
 
 
-class TestVolatilityBreakoutStrategy:
-    """Test cases for the Volatility Breakout Strategy."""
+class TestRSIMeanReversionStrategy:
+    """Test suite for RSI Mean Reversion Strategy."""
     
     def setup_method(self):
-        """Setup test fixtures."""
-        # Create test instrument
-        self.instrument = TestInstrumentProvider.default_fx_ccy("BTCUSDT")
-        self.instrument_id = self.instrument.id
-        
+        """Setup test environment before each test."""
         # Create strategy configuration
-        self.config = VolatilityBreakoutConfig(
-            instrument_ids=[self.instrument_id],
-            bar_type=BarType.from_str("BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL"),
-            atr_period=14,
-            bollinger_period=20,
-            bollinger_std=2.0,
+        self.config = RSIMeanReversionConfig(
+            strategy_id=StrategyId("RSI_MEAN_REVERSION-TEST"),
             rsi_period=14,
-            volume_period=20,
-            volume_threshold_multiplier=1.5,
-            rsi_min=30.0,
-            rsi_max=70.0,
-            volatility_threshold_atr=0.5,
-            stop_loss_atr_multiplier=2.0,
-            take_profit_atr_multiplier=3.0,
-            trailing_stop_atr_multiplier=1.5
+            rsi_oversold=30.0,
+            rsi_overbought=70.0,
+            position_size_pct=0.05,
+            stop_loss_pct=0.02,
+            take_profit_pct=0.04,
+            leverage=5,
+            max_open_positions=3,
         )
         
         # Create strategy instance
-        self.strategy = VolatilityBreakoutStrategy(self.config)
+        self.strategy = RSIMeanReversionStrategy(self.config)
         
-        # Mock clock
-        self.clock = MockClock()
+        # Mock components
+        self.mock_portfolio = Mock()
+        self.mock_cache = Mock()
+        
+        # Setup instrument
+        self.instrument_id = InstrumentId(Symbol("BTCUSDT"), Venue("BINANCE"))
+        self.instrument = CurrencyPair(
+            id=self.instrument_id,
+            raw_symbol=Symbol("BTCUSDT"),
+            base_currency=BTC,
+            quote_currency=USD,
+            price_precision=2,
+            size_precision=6,
+            price_increment=Price.from_str("0.01"),
+            size_increment=Quantity.from_str("0.000001"),
+            lot_size=None,
+            max_quantity=None,
+            min_quantity=Quantity.from_str("0.000001"),
+            max_notional=None,
+            min_notional=Money(10.00, USD),
+            max_price=None,
+            min_price=Price.from_str("0.01"),
+            margin_init=Decimal("0.1"),
+            margin_maint=Decimal("0.05"),
+            maker_fee=Decimal("0.001"),
+            taker_fee=Decimal("0.001"),
+            ts_event=0,
+            ts_init=0,
+        )
+        
+        # Add instrument to strategy
+        self.strategy.add_instrument(self.instrument_id)
+        
+        # Mock strategy methods
+        self.strategy.portfolio = self.mock_portfolio
+        self.strategy.cache = self.mock_cache
+        self.strategy.submit_order = Mock()
+        self.strategy.close_position = Mock()
+    
+    def create_test_bar(self, 
+                       close_price: float,
+                       high_price: float = None,
+                       low_price: float = None,
+                       volume: float = 1000.0) -> Bar:
+        """Create a test bar with specified parameters."""
+        if high_price is None:
+            high_price = close_price * 1.01
+        if low_price is None:
+            low_price = close_price * 0.99
+        
+        bar_type = BarType(
+            instrument_id=self.instrument_id,
+            bar_spec=BarSpecification(5, 1, PriceType.LAST, 0),
+            aggregation_source=1,
+        )
+        
+        return Bar(
+            bar_type=bar_type,
+            open=Price.from_str(f"{close_price:.2f}"),
+            high=Price.from_str(f"{high_price:.2f}"),
+            low=Price.from_str(f"{low_price:.2f}"),
+            close=Price.from_str(f"{close_price:.2f}"),
+            volume=Quantity.from_str(f"{volume:.0f}"),
+            ts_event=0,
+            ts_init=0,
+        )
     
     def test_strategy_initialization(self):
         """Test strategy initialization."""
-        assert self.strategy.config == self.config
-        assert len(self.strategy.indicators) == 0
-        assert len(self.strategy.active_positions) == 0
-        assert len(self.strategy.last_signals) == 0
+        assert self.strategy.config.rsi_period == 14
+        assert self.strategy.config.rsi_oversold == 30.0
+        assert self.strategy.config.rsi_overbought == 70.0
+        assert self.instrument_id in self.strategy.instruments
+        assert self.instrument_id in self.strategy.rsi
     
-    def test_setup_indicators(self):
-        """Test indicator setup."""
-        self.strategy._setup_indicators(self.instrument_id)
+    def test_add_instrument(self):
+        """Test adding an instrument to the strategy."""
+        new_instrument_id = InstrumentId(Symbol("ETHUSDT"), Venue("BINANCE"))
         
-        indicators = self.strategy.indicators[self.instrument_id]
+        self.strategy.add_instrument(new_instrument_id)
         
-        assert 'atr' in indicators
-        assert 'bollinger' in indicators
-        assert 'rsi' in indicators
-        assert 'volume_ema' in indicators
-        
-        assert isinstance(indicators['atr'], AverageTrueRange)
-        assert isinstance(indicators['bollinger'], BollingerBands)
-        assert isinstance(indicators['rsi'], RelativeStrengthIndex)
-        
-        assert indicators['atr'].period == self.config.atr_period
-        assert indicators['bollinger'].period == self.config.bollinger_period
-        assert indicators['rsi'].period == self.config.rsi_period
+        assert new_instrument_id in self.strategy.instruments
+        assert new_instrument_id in self.strategy.rsi
+        assert new_instrument_id in self.strategy.ma
+        assert new_instrument_id in self.strategy.volume_ma
     
-    def test_indicators_ready_check(self):
-        """Test indicators ready state check."""
-        self.strategy._setup_indicators(self.instrument_id)
-        indicators = self.strategy.indicators[self.instrument_id]
+    def test_indicator_updates(self):
+        """Test that indicators are updated correctly."""
+        # Create test bars to initialize indicators
+        prices = [100.0, 101.0, 99.0, 102.0, 98.0, 103.0, 97.0, 104.0, 96.0, 105.0]
         
-        # Initially not ready
-        assert not self.strategy._indicators_ready(indicators)
+        for price in prices:
+            bar = self.create_test_bar(price)
+            self.strategy.on_bar(bar)
         
-        # Simulate enough data
-        for _ in range(25):  # More than max period
-            indicators['atr'].update_raw(100.0, 99.0, 99.5)
-            indicators['bollinger'].update_raw(99.5)
-            indicators['rsi'].update_raw(99.5)
-            indicators['volume_ema'].update_raw(1000.0)
+        # Check that indicators are initialized
+        rsi = self.strategy.rsi[self.instrument_id]
+        ma = self.strategy.ma[self.instrument_id]
+        volume_ma = self.strategy.volume_ma[self.instrument_id]
         
-        # Should be ready now
-        assert self.strategy._indicators_ready(indicators)
+        assert rsi.count > 0
+        assert ma.count > 0
+        assert volume_ma.count > 0
     
-    def test_signal_analysis_bullish(self):
-        """Test bullish signal generation."""
-        self.strategy._setup_indicators(self.instrument_id)
-        indicators = self.strategy.indicators[self.instrument_id]
+    def test_long_signal_detection(self):
+        """Test detection of long entry signals."""
+        # Mock portfolio to allow new positions
+        self.mock_portfolio.positions_open.return_value = []
+        self.mock_cache.instrument.return_value = self.instrument
         
-        # Warm up indicators
-        for i in range(25):
-            price = 100.0 + i * 0.1
-            indicators['atr'].update_raw(price + 0.5, price - 0.5, price)
-            indicators['bollinger'].update_raw(price)
-            indicators['rsi'].update_raw(price)
-            indicators['volume_ema'].update_raw(1000.0)
+        # Mock account for position sizing
+        mock_account = Mock()
+        mock_account.balance.return_value = Money(10000.0, USD)
+        self.mock_portfolio.account.return_value = mock_account
         
-        # Create test bar with bullish breakout conditions
-        bar = Bar(
-            bar_type=self.config.bar_type,
-            open=Price(102.0, 2),
-            high=Price(103.0, 2),
-            low=Price(101.5, 2),
-            close=Price(102.8, 2),  # Above Bollinger upper band
-            volume=Quantity(2000.0, 0),  # High volume
-            ts_event=self.clock.timestamp_ns(),
-            ts_init=self.clock.timestamp_ns()
-        )
+        # Setup conditions for long signal
+        # Need to get RSI below 30, price above MA, volume above average
         
-        signal = self.strategy._analyze_signals(self.instrument_id, bar)
+        # First, create bars to initialize indicators
+        init_prices = [100.0] * 20  # Initialize with stable prices
+        for price in init_prices:
+            bar = self.create_test_bar(price, volume=1000.0)
+            self.strategy.on_bar(bar)
         
-        # Should generate BUY signal under right conditions
-        # Note: Actual signal depends on indicator values
-        assert signal in ["BUY", "SELL", "NONE"]
+        # Force RSI to oversold level and set up other conditions
+        rsi_indicator = self.strategy.rsi[self.instrument_id]
+        ma_indicator = self.strategy.ma[self.instrument_id]
+        volume_ma_indicator = self.strategy.volume_ma[self.instrument_id]
+        
+        # Mock indicator values
+        rsi_indicator.value = 25.0  # Oversold
+        ma_indicator.value = 99.0   # Price will be above this
+        volume_ma_indicator.value = 1000.0  # Volume will be above this
+        
+        # Mark indicators as initialized
+        rsi_indicator._initialized = True
+        ma_indicator._initialized = True
+        volume_ma_indicator._initialized = True
+        
+        # Create bar that should trigger long signal
+        signal_bar = self.create_test_bar(100.0, volume=1300.0)  # High volume
+        
+        # Process the bar
+        self.strategy.on_bar(signal_bar)
+        
+        # Check if order was submitted (long signal detected)
+        self.strategy.submit_order.assert_called()
+        submitted_order = self.strategy.submit_order.call_args[0][0]
+        assert submitted_order.side == OrderSide.BUY
     
-    def test_signal_analysis_bearish(self):
-        """Test bearish signal generation."""
-        self.strategy._setup_indicators(self.instrument_id)
-        indicators = self.strategy.indicators[self.instrument_id]
+    def test_short_signal_detection(self):
+        """Test detection of short entry signals."""
+        # Mock portfolio to allow new positions
+        self.mock_portfolio.positions_open.return_value = []
+        self.mock_cache.instrument.return_value = self.instrument
         
-        # Warm up indicators
-        for i in range(25):
-            price = 100.0 - i * 0.1
-            indicators['atr'].update_raw(price + 0.5, price - 0.5, price)
-            indicators['bollinger'].update_raw(price)
-            indicators['rsi'].update_raw(price)
-            indicators['volume_ema'].update_raw(1000.0)
+        # Mock account for position sizing
+        mock_account = Mock()
+        mock_account.balance.return_value = Money(10000.0, USD)
+        self.mock_portfolio.account.return_value = mock_account
         
-        # Create test bar with bearish breakout conditions
-        bar = Bar(
-            bar_type=self.config.bar_type,
-            open=Price(97.0, 2),
-            high=Price(97.5, 2),
-            low=Price(96.0, 2),
-            close=Price(96.2, 2),  # Below Bollinger lower band
-            volume=Quantity(2000.0, 0),  # High volume
-            ts_event=self.clock.timestamp_ns(),
-            ts_init=self.clock.timestamp_ns()
-        )
+        # Initialize indicators
+        init_prices = [100.0] * 20
+        for price in init_prices:
+            bar = self.create_test_bar(price, volume=1000.0)
+            self.strategy.on_bar(bar)
         
-        signal = self.strategy._analyze_signals(self.instrument_id, bar)
+        # Setup conditions for short signal
+        rsi_indicator = self.strategy.rsi[self.instrument_id]
+        ma_indicator = self.strategy.ma[self.instrument_id]
+        volume_ma_indicator = self.strategy.volume_ma[self.instrument_id]
         
-        # Should generate appropriate signal
-        assert signal in ["BUY", "SELL", "NONE"]
+        # Mock indicator values
+        rsi_indicator.value = 75.0  # Overbought
+        ma_indicator.value = 101.0  # Price will be below this
+        volume_ma_indicator.value = 1000.0  # Volume will be above this
+        
+        # Mark indicators as initialized
+        rsi_indicator._initialized = True
+        ma_indicator._initialized = True
+        volume_ma_indicator._initialized = True
+        
+        # Create bar that should trigger short signal
+        signal_bar = self.create_test_bar(100.0, volume=1300.0)  # High volume
+        
+        # Process the bar
+        self.strategy.on_bar(signal_bar)
+        
+        # Check if order was submitted (short signal detected)
+        self.strategy.submit_order.assert_called()
+        submitted_order = self.strategy.submit_order.call_args[0][0]
+        assert submitted_order.side == OrderSide.SELL
     
-    def test_volume_confirmation(self):
-        """Test volume confirmation logic."""
-        self.strategy._setup_indicators(self.instrument_id)
-        indicators = self.strategy.indicators[self.instrument_id]
+    def test_position_limits(self):
+        """Test that position limits are respected."""
+        # Mock portfolio with maximum positions already open
+        mock_positions = [Mock() for _ in range(self.config.max_open_positions)]
+        self.mock_portfolio.positions_open.return_value = mock_positions
         
-        # Setup volume EMA with lower values
-        for _ in range(20):
-            indicators['volume_ema'].update_raw(1000.0)
+        # Initialize indicators
+        init_prices = [100.0] * 20
+        for price in init_prices:
+            bar = self.create_test_bar(price)
+            self.strategy.on_bar(bar)
         
-        avg_volume = indicators['volume_ema'].value
-        threshold = avg_volume * self.config.volume_threshold_multiplier
+        # Setup signal conditions
+        rsi_indicator = self.strategy.rsi[self.instrument_id]
+        ma_indicator = self.strategy.ma[self.instrument_id]
+        volume_ma_indicator = self.strategy.volume_ma[self.instrument_id]
         
-        # Test volume confirmation
-        high_volume = threshold + 100
-        low_volume = threshold - 100
+        rsi_indicator.value = 25.0
+        ma_indicator.value = 99.0
+        volume_ma_indicator.value = 1000.0
         
-        assert high_volume > threshold  # Should pass volume filter
-        assert low_volume < threshold   # Should fail volume filter
-
-
-class TestRiskManager:
-    """Test cases for Risk Manager."""
+        rsi_indicator._initialized = True
+        ma_indicator._initialized = True
+        volume_ma_indicator._initialized = True
+        
+        # Create signal bar
+        signal_bar = self.create_test_bar(100.0, volume=1300.0)
+        
+        # Process the bar
+        self.strategy.on_bar(signal_bar)
+        
+        # Should not submit order due to position limit
+        self.strategy.submit_order.assert_not_called()
     
-    def setup_method(self):
-        """Setup test fixtures."""
-        self.risk_manager = RiskManager()
-        self.instrument = TestInstrumentProvider.default_fx_ccy("BTCUSDT")
+    def test_daily_trade_limit(self):
+        """Test that daily trade limits are respected."""
+        # Set daily trades to maximum
+        self.strategy.daily_trades = self.strategy.max_daily_trades
         
-    def test_position_size_calculation(self):
+        # Mock portfolio
+        self.mock_portfolio.positions_open.return_value = []
+        self.mock_cache.instrument.return_value = self.instrument
+        
+        # Initialize and setup indicators
+        init_prices = [100.0] * 20
+        for price in init_prices:
+            bar = self.create_test_bar(price)
+            self.strategy.on_bar(bar)
+        
+        rsi_indicator = self.strategy.rsi[self.instrument_id]
+        ma_indicator = self.strategy.ma[self.instrument_id]
+        volume_ma_indicator = self.strategy.volume_ma[self.instrument_id]
+        
+        rsi_indicator.value = 25.0
+        ma_indicator.value = 99.0
+        volume_ma_indicator.value = 1000.0
+        
+        rsi_indicator._initialized = True
+        ma_indicator._initialized = True
+        volume_ma_indicator._initialized = True
+        
+        # Create signal bar
+        signal_bar = self.create_test_bar(100.0, volume=1300.0)
+        
+        # Process the bar
+        self.strategy.on_bar(signal_bar)
+        
+        # Should not submit order due to daily limit
+        self.strategy.submit_order.assert_not_called()
+    
+    def test_position_sizing_calculation(self):
         """Test position size calculation."""
-        entry_price = Price(50000.0, 2)
-        stop_loss = Price(49000.0, 2)
-        atr_value = 500.0
-        account_balance = Mock()
-        account_balance.as_double.return_value = 10000.0
+        # Mock account balance
+        mock_account = Mock()
+        mock_account.balance.return_value = Money(10000.0, USD)
+        self.mock_portfolio.account.return_value = mock_account
         
-        position_size = self.risk_manager.calculate_position_size(
-            self.instrument, entry_price, stop_loss, atr_value, account_balance
+        # Calculate position size
+        price = Price.from_str("50000.00")
+        quantity = self.strategy._calculate_position_size(self.instrument, price)
+        
+        # Expected: 10000 * 0.05 * 5 (leverage) = 2500 USD position
+        # At 50000 price = 0.05 BTC
+        expected_quantity = 2500.0 / 50000.0
+        
+        assert abs(quantity.as_double() - expected_quantity) < 0.001
+    
+    def test_stop_loss_take_profit_calculation(self):
+        """Test stop loss and take profit calculation."""
+        entry_price = 50000.0
+        
+        # Test long position
+        stop_loss, take_profit = self.strategy._calculate_stop_loss_take_profit(
+            entry_price, OrderSide.BUY
         )
         
-        assert isinstance(position_size, Quantity)
-        assert position_size.as_double() > 0
-    
-    def test_stop_loss_calculation(self):
-        """Test stop loss calculation."""
-        entry_price = Price(50000.0, 2)
-        atr_value = 500.0
+        expected_stop = entry_price * (1 - self.config.stop_loss_pct)
+        expected_profit = entry_price * (1 + self.config.take_profit_pct)
         
-        # Test BUY order
-        stop_loss_buy = self.risk_manager.calculate_stop_loss(
-            entry_price, atr_value, OrderSide.BUY
+        assert abs(stop_loss - expected_stop) < 1.0
+        assert abs(take_profit - expected_profit) < 1.0
+        
+        # Test short position
+        stop_loss, take_profit = self.strategy._calculate_stop_loss_take_profit(
+            entry_price, OrderSide.SELL
         )
         
-        # Stop loss should be below entry for BUY
-        assert stop_loss_buy.as_double() < entry_price.as_double()
+        expected_stop = entry_price * (1 + self.config.stop_loss_pct)
+        expected_profit = entry_price * (1 - self.config.take_profit_pct)
         
-        # Test SELL order
-        stop_loss_sell = self.risk_manager.calculate_stop_loss(
-            entry_price, atr_value, OrderSide.SELL
+        assert abs(stop_loss - expected_stop) < 1.0
+        assert abs(take_profit - expected_profit) < 1.0
+    
+    def test_exit_signal_detection(self):
+        """Test exit signal detection for existing positions."""
+        # Mock existing position
+        mock_position = Mock()
+        mock_position.side = OrderSide.BUY
+        mock_position.instrument_id = self.instrument_id
+        
+        self.strategy.active_positions[self.instrument_id] = mock_position
+        
+        # Initialize indicators
+        init_prices = [100.0] * 20
+        for price in init_prices:
+            bar = self.create_test_bar(price)
+            self.strategy.on_bar(bar)
+        
+        # Setup exit condition (RSI in neutral zone for long position)
+        rsi_indicator = self.strategy.rsi[self.instrument_id]
+        rsi_indicator.value = 65.0  # Above neutral upper (60)
+        rsi_indicator._initialized = True
+        
+        # Create bar
+        exit_bar = self.create_test_bar(100.0)
+        
+        # Process the bar
+        self.strategy.on_bar(exit_bar)
+        
+        # Should close position
+        self.strategy.close_position.assert_called_with(self.instrument_id)
+    
+    def test_emergency_stop(self):
+        """Test emergency stop functionality."""
+        # Trigger emergency stop
+        self.strategy._emergency_stop()
+        
+        # Check that daily trades is set to maximum (preventing new trades)
+        assert self.strategy.daily_trades == self.strategy.max_daily_trades
+
+
+class TestStrategyIntegration:
+    """Integration tests for strategy with mocked Nautilus components."""
+    
+    @pytest.fixture
+    def strategy_with_mocks(self):
+        """Create strategy with all necessary mocks."""
+        config = RSIMeanReversionConfig(
+            strategy_id=StrategyId("RSI_MEAN_REVERSION-INTEGRATION"),
+            rsi_period=5,  # Shorter period for faster testing
+            rsi_oversold=30.0,
+            rsi_overbought=70.0,
         )
         
-        # Stop loss should be above entry for SELL
-        assert stop_loss_sell.as_double() > entry_price.as_double()
+        strategy = RSIMeanReversionStrategy(config)
+        
+        # Mock all necessary components
+        strategy.portfolio = Mock()
+        strategy.cache = Mock()
+        strategy.submit_order = Mock()
+        strategy.close_position = Mock()
+        
+        return strategy
     
-    def test_take_profit_calculation(self):
-        """Test take profit calculation."""
-        entry_price = Price(50000.0, 2)
-        atr_value = 500.0
+    def test_full_trading_cycle(self, strategy_with_mocks):
+        """Test a complete trading cycle from signal to exit."""
+        strategy = strategy_with_mocks
+        instrument_id = InstrumentId(Symbol("BTCUSDT"), Venue("BINANCE"))
         
-        # Test BUY order
-        take_profit_buy = self.risk_manager.calculate_take_profit(
-            entry_price, atr_value, OrderSide.BUY
-        )
+        # Setup mocks
+        strategy.portfolio.positions_open.return_value = []
+        strategy.cache.instrument.return_value = Mock()
         
-        # Take profit should be above entry for BUY
-        assert take_profit_buy.as_double() > entry_price.as_double()
+        mock_account = Mock()
+        mock_account.balance.return_value = Money(10000.0, USD)
+        strategy.portfolio.account.return_value = mock_account
         
-        # Test SELL order
-        take_profit_sell = self.risk_manager.calculate_take_profit(
-            entry_price, atr_value, OrderSide.SELL
-        )
+        # Add instrument
+        strategy.add_instrument(instrument_id)
         
-        # Take profit should be below entry for SELL
-        assert take_profit_sell.as_double() < entry_price.as_double()
-    
-    def test_trade_validation(self):
-        """Test trade entry validation."""
-        instrument_id = self.instrument.id
-        side = OrderSide.BUY
-        quantity = Quantity(0.1, 1)
-        price = Price(50000.0, 2)
+        # Simulate price movement that creates oversold condition
+        prices = [100, 95, 90, 85, 80, 75, 70, 65, 60, 55]  # Declining prices
         
-        # Test valid trade
-        is_valid, reason = self.risk_manager.validate_trade_entry(
-            instrument_id, side, quantity, price
-        )
+        for price in prices:
+            bar = strategy.create_test_bar(price)
+            strategy.on_bar(bar)
         
-        assert is_valid
-        assert "validated" in reason.lower()
+        # At this point, RSI should be low and might trigger a signal
+        # This is a simplified test - in reality, we'd need more sophisticated
+        # market simulation to reliably trigger signals
         
-        # Test emergency stop
-        self.risk_manager.trigger_emergency_stop()
-        is_valid, reason = self.risk_manager.validate_trade_entry(
-            instrument_id, side, quantity, price
-        )
-        
-        assert not is_valid
-        assert "emergency stop" in reason.lower()
-    
-    def test_daily_pnl_tracking(self):
-        """Test daily PnL tracking."""
-        initial_pnl = self.risk_manager.daily_pnl
-        
-        # Update PnL
-        self.risk_manager.update_daily_pnl(100.0)
-        assert self.risk_manager.daily_pnl == initial_pnl + 100.0
-        
-        # Update again
-        self.risk_manager.update_daily_pnl(-50.0)
-        assert self.risk_manager.daily_pnl == initial_pnl + 50.0
-    
-    def test_consecutive_losses_tracking(self):
-        """Test consecutive losses tracking."""
-        assert self.risk_manager.consecutive_losses == 0
-        
-        # Record losing trade
-        self.risk_manager.record_trade_result(-100.0, False)
-        assert self.risk_manager.consecutive_losses == 1
-        
-        # Record another losing trade
-        self.risk_manager.record_trade_result(-50.0, False)
-        assert self.risk_manager.consecutive_losses == 2
-        
-        # Record winning trade - should reset
-        self.risk_manager.record_trade_result(200.0, True)
-        assert self.risk_manager.consecutive_losses == 0
-
-
-class TestDataProcessor:
-    """Test cases for Data Processor utilities."""
-    
-    def test_atr_calculation(self):
-        """Test ATR calculation."""
-        high = [102, 103, 104, 103, 105, 106, 107, 106, 108, 109, 110, 109, 111, 112, 113]
-        low = [100, 101, 102, 101, 103, 104, 105, 104, 106, 107, 108, 107, 109, 110, 111]
-        close = [101, 102, 103, 102, 104, 105, 106, 105, 107, 108, 109, 108, 110, 111, 112]
-        
-        atr = DataProcessor.calculate_atr(high, low, close, period=14)
-        
-        assert isinstance(atr, float)
-        assert atr > 0
-    
-    def test_bollinger_bands_calculation(self):
-        """Test Bollinger Bands calculation."""
-        prices = [100 + i + np.random.normal(0, 0.5) for i in range(25)]
-        
-        bands = DataProcessor.calculate_bollinger_bands(prices, period=20, std_dev=2.0)
-        
-        assert 'upper' in bands
-        assert 'middle' in bands
-        assert 'lower' in bands
-        
-        assert bands['upper'] > bands['middle'] > bands['lower']
-    
-    def test_rsi_calculation(self):
-        """Test RSI calculation."""
-        # Create trending price data
-        prices = [100 + i * 0.5 for i in range(20)]
-        
-        rsi = DataProcessor.calculate_rsi(prices, period=14)
-        
-        assert isinstance(rsi, float)
-        assert 0 <= rsi <= 100
-        
-        # Uptrending prices should have RSI > 50
-        assert rsi > 50
-    
-    def test_volume_sma_calculation(self):
-        """Test volume SMA calculation."""
-        volumes = [1000 + i * 10 for i in range(25)]
-        
-        sma = DataProcessor.calculate_volume_sma(volumes, period=20)
-        
-        assert isinstance(sma, float)
-        assert sma > 0
-        
-        # Should be close to the average of last 20 values
-        expected = sum(volumes[-20:]) / 20
-        assert abs(sma - expected) < 1e-6
-
-
-class TestPriceUtils:
-    """Test cases for Price utilities."""
-    
-    def test_tick_size_rounding(self):
-        """Test price rounding to tick size."""
-        price = 50123.456789
-        tick_size = 0.01
-        
-        rounded = PriceUtils.round_to_tick_size(price, tick_size)
-        
-        assert rounded == 50123.46
-    
-    def test_lot_size_rounding(self):
-        """Test quantity rounding to lot size."""
-        quantity = 0.123456789
-        lot_size = 0.001
-        
-        rounded = PriceUtils.round_to_lot_size(quantity, lot_size)
-        
-        assert rounded == 0.123
-    
-    def test_notional_value_calculation(self):
-        """Test notional value calculation."""
-        price = 50000.0
-        quantity = 0.5
-        
-        notional = PriceUtils.calculate_notional_value(price, quantity)
-        
-        assert notional == 25000.0
-    
-    def test_percentage_change_calculation(self):
-        """Test percentage change calculation."""
-        old_value = 100.0
-        new_value = 110.0
-        
-        change = PriceUtils.calculate_percentage_change(old_value, new_value)
-        
-        assert change == 10.0
-        
-        # Test with decrease
-        new_value = 90.0
-        change = PriceUtils.calculate_percentage_change(old_value, new_value)
-        
-        assert change == -10.0
-
-
-class TestValidationUtils:
-    """Test cases for Validation utilities."""
-    
-    def test_price_validation(self):
-        """Test price validation."""
-        # Valid prices
-        assert ValidationUtils.validate_price(100.0)
-        assert ValidationUtils.validate_price(0.001)
-        assert ValidationUtils.validate_price(999999.99)
-        
-        # Invalid prices
-        assert not ValidationUtils.validate_price(-1.0)
-        assert not ValidationUtils.validate_price(float('nan'))
-        assert not ValidationUtils.validate_price(float('inf'))
-    
-    def test_quantity_validation(self):
-        """Test quantity validation."""
-        # Valid quantities
-        assert ValidationUtils.validate_quantity(1.0)
-        assert ValidationUtils.validate_quantity(0.001)
-        assert ValidationUtils.validate_quantity(0.0)  # Zero allowed
-        
-        # Invalid quantities
-        assert not ValidationUtils.validate_quantity(-1.0)
-        assert not ValidationUtils.validate_quantity(float('nan'))
-        assert not ValidationUtils.validate_quantity(float('inf'))
-    
-    def test_symbol_sanitization(self):
-        """Test symbol sanitization."""
-        # Test various inputs
-        assert ValidationUtils.sanitize_symbol("btcusdt") == "BTCUSDT"
-        assert ValidationUtils.sanitize_symbol(" ethusdt ") == "ETHUSDT"
-        assert ValidationUtils.sanitize_symbol("ADA-USDT") == "ADA-USDT"
-
-
-# Async test for coin selector
-class TestCoinSelectorAsync:
-    """Async test cases for Coin Selector."""
-    
-    @pytest.mark.asyncio
-    async def test_coin_selector_creation(self):
-        """Test coin selector creation and basic functionality."""
-        from coin_selector import CoinSelector
-        
-        selector = CoinSelector()
-        
-        # Test excluded assets
-        excluded = selector.get_excluded_assets()
-        assert isinstance(excluded, set)
-        assert len(excluded) > 0
-        assert 'USDT' in excluded  # Should include stablecoins
-    
-    @pytest.mark.asyncio
-    async def test_symbol_validation(self):
-        """Test symbol validation functionality."""
-        from coin_selector import CoinSelector
-        
-        async with CoinSelector() as selector:
-            # Mock the exchange info response
-            with patch.object(selector, 'get_exchange_info') as mock_exchange_info:
-                mock_exchange_info.return_value = {
-                    'symbols': [
-                        {'symbol': 'BTCUSDT', 'status': 'TRADING'},
-                        {'symbol': 'ETHUSDT', 'status': 'TRADING'},
-                        {'symbol': 'INVALID', 'status': 'HALT'}
-                    ]
-                }
-                
-                test_symbols = ['BTCUSDT', 'ETHUSDT', 'INVALID', 'NONEXISTENT']
-                valid_symbols = await selector.validate_symbols(test_symbols)
-                
-                assert 'BTCUSDT' in valid_symbols
-                assert 'ETHUSDT' in valid_symbols
-                assert 'INVALID' not in valid_symbols
-                assert 'NONEXISTENT' not in valid_symbols
-
-
-# Test configuration
-@pytest.fixture
-def sample_config():
-    """Sample configuration for testing."""
-    from config import BotConfig, ExchangeConfig, TradingConfig, StrategyConfig
-    
-    return BotConfig(
-        exchange=ExchangeConfig(),
-        trading=TradingConfig(),
-        strategy=StrategyConfig(),
-        logging=None,
-        execution=None,
-        safety=None
-    )
-
-
-def test_configuration_loading(sample_config):
-    """Test configuration loading and validation."""
-    config = sample_config
-    
-    assert config.exchange.testnet is True
-    assert config.trading.max_coins == 50
-    assert config.strategy.atr_period == 14
-
-
-# Performance test
-def test_strategy_performance():
-    """Test strategy performance with large datasets."""
-    # This test ensures the strategy can handle large amounts of data efficiently
-    
-    config = VolatilityBreakoutConfig(
-        instrument_ids=[],
-        bar_type=BarType.from_str("BTCUSDT.BINANCE-1-MINUTE-LAST-EXTERNAL")
-    )
-    
-    strategy = VolatilityBreakoutStrategy(config)
-    instrument_id = InstrumentId.from_str("BTCUSDT.BINANCE")
-    
-    # Setup indicators
-    strategy._setup_indicators(instrument_id)
-    
-    # Process large number of updates
-    import time
-    start_time = time.time()
-    
-    for i in range(1000):
-        price = 100.0 + i * 0.01
-        indicators = strategy.indicators[instrument_id]
-        indicators['atr'].update_raw(price + 0.5, price - 0.5, price)
-        indicators['bollinger'].update_raw(price)
-        indicators['rsi'].update_raw(price)
-        indicators['volume_ema'].update_raw(1000.0)
-    
-    end_time = time.time()
-    processing_time = end_time - start_time
-    
-    # Should process 1000 updates quickly (less than 1 second)
-    assert processing_time < 1.0
+        assert len(strategy.instruments) == 1
+        assert instrument_id in strategy.rsi
 
 
 if __name__ == "__main__":
-    # Run tests
     pytest.main([__file__, "-v"])
